@@ -1,0 +1,264 @@
+---
+title: "Основни понятия"
+author: "Boyko Amarov"
+date: "10/12/2021"
+output: html_document
+---
+
+```{r setup}
+# install.packages("xts")
+# Extended Time Series
+library(tidyverse)
+library(xts)
+
+bitcoins <- read_csv(
+  'https://raw.githubusercontent.com/feb-sofia/timeseries-2022-2023/main/data/bitcoins.csv')
+bc_ts <- xts(bitcoins$Close, order.by = as.Date(bitcoins$Date))["2017/"]
+```
+
+## Mathematical notation
+
+$$
+y_{t}, t = 1,\ldots,T: \text{ denotes a time series with T observations}\\
+y_1, y_2, y_3, \ldots, y_{T}
+$$
+In the bitcoins example $T = ?$.
+
+$$
+y_{1}, y_{2}, y_{3}, \ldots, y_{T}\\
+y_{t}, t = 1,\ldots, T
+$$
+$y_1 = ?, y_2 = ?, \ldots, y_{?} = ?$.
+
+Looking from Nov 13th 2017: what was the value of the exchange rate on the previous trading day? Answer
+by simply looking in the table: $y_{117 - 1} = y_{?} = ?$.
+
+$$
+y_{t}, t = 1,\ldots, T\\
+y_{t - 1}: \text{ first lag of } y_{t}\\
+y_{t - 2}: \text{ second lag of } y_{t}
+$$
+
+- Create a scatterplot for the exchange rate time series and its first lag
+
+Example with a cross-section election survey
+
+
+```{r}
+bc_ts_l1 <- stats::lag(bc_ts)
+bc_ts_l2 <- stats::lag(bc_ts, k = 1)
+bc_ts_l2 <- stats::lag(bc_ts, k = 2)
+
+bc_ts_lags <- tibble(
+  y = bc_ts,
+  y_l1 = bc_ts_l1,
+  y_l2 = bc_ts_l2
+)
+
+bc_ts_lags %>%
+  ggplot(data =, aes(x = y_l1, y = y)) +
+  geom_point() +
+  labs(
+    title = "Scatterplot of y[t] and y[t-1]",
+    x = expression(y[t - 1]),
+    y = expression(y[t])
+  )
+```
+
+```{r}
+mean(bc_ts_l1, na.rm = TRUE)
+```
+
+```{r}
+rnorm(n = 1, mean = 10)
+```
+
+```{r}
+xrandom <- rnorm(n = 100)
+ts_random <- xts(xrandom, order.by = seq.Date(from = as.Date("2017-06-01"), by = "day", length.out = 100))
+```
+
+```{r}
+plot(ts_random)
+```
+
+```{r}
+ts_random_l1 <- lag(ts_random)
+ts_all_lags <- cbind(ts_random, ts_random_l1)
+
+ggplot(ts_all_lags, aes(x = ts_random_l1, y = ts_random)) +
+  geom_point() +
+  ggtitle('') +
+  ylab('y[t]') +
+  xlab('y[t - 1]')
+```
+
+
+## World of mathematics (properties of baskets)
+
+$$
+y_1, y_2, \ldots, y_T
+$$
+
+Mathematical expectation (expected value, mean)
+$$
+E(y_t)
+$$
+this will describe the average (in some sense) of the numbers in the basket.
+
+$$
+Var(y_t) = E\(y_t - Ey_{t}\)^2
+$$
+Variance: this will describe how different the number in the basket are.
+
+$$
+Cov(y_t, y_{t - 1}) = E(y_{t} - Ey_{t})(y_{t - 1} - Ey_{t - 1})
+$$
+
+Covariance: this will describe how the different baskets are related.
+
+## World of observations
+
+1. Empirical (sample) average (mean)
+
+$$
+\hat{\mu} = \frac{1}{T}\sum_{t = 1}^{T} y_{t}
+$$
+
+2. Empirical (sample) variance
+
+$$
+S^2_{y} = \frac{1}{T}\sum_{t = 1}^{T}(y_t - \hat{\mu})^2
+$$
+
+Exercise:
+
+$$
+y_1 = 2, y_2 = 3, y_3 = 10
+$$
+
+$$
+\hat{\mu} = \frac{2 + 3 + 10}{3} = 5
+$$
+$$
+S^2_{y} = \frac{1}{3}\left((y_1 - \hat{\mu})^2 + (y_2 - \hat{\mu})^2 + (y_3 - \hat{\mu})^2 \right)=\\
+S^2_{y} = \frac{1}{3}\left((2 - 5)^2 + (3 - 5)^2 + (10 - 5)^2 \right)=\\
+S^2_{y} = \frac{1}{3}\left(9 + 4 + 25\right) \approx 12.6
+$$
+
+```{r}
+y <- c(2, 3, 10)
+mean(y)
+var(y) # Up to the scaling factor
+```
+
+
+3. Empirical (sample) covariance
+## Association
+
+Scatter plot
+
+```{r}
+mean(earnings$weight_kg, na.rm = TRUE)
+```
+
+```{r}
+NA + 2
+```
+
+```{r}
+## Compute the mean by simply omitting the missing values
+mean(earnings$weight_kg, na.rm = TRUE)
+mean(earnings$height_cm)
+## NA: missing/undefined value
+```
+
+```{r}
+ggplot(
+        data = earnings,
+        aes(
+                x = weight_kg,
+                y = height_cm
+        )
+) +
+        geom_point(
+                position = "jitter",
+                size = 1 / 5,
+                alpha = 0.5
+        ) +
+        labs(
+                title = "Scatterplot",
+                y = "Height (cm)",
+                x = "Weight (kg)"
+        ) +
+        geom_smooth(method = "lm")
+```
+
+
+```{r}
+ggplot(
+        data = earnings,
+        ## aes: aesthetics
+        mapping = aes(
+                x = weight_kg,
+                y = height_cm
+        )
+) +
+        ## Add points
+        geom_point(
+                ## Add some random noise to all points to avoid overplotting
+                position = "jitter",
+                ## Transparency
+                alpha = 0.25
+        ) +
+        ## Add horizontal line at the average height (cm)
+        geom_hline(yintercept = 169, color = "steelblue2") +
+        ## Add vertical line at the average weight (kg)
+        geom_vline(xintercept = 70, color = "firebrick4")  +
+        ## Add labels
+        labs(
+                x = "Weight (kg)",
+                y = "Height (cm)",
+                title = "Scatterplot weight and height"
+        )
+```
+
+From the points in the scatter-plot we see that heavier persons also tended to be taller persons.
+
+$$
+i = 1,\ldots,n = 1816 \text{ persons}\\
+y_{t}: \text{ value at time } t\\
+y_{t - 1}: \text{ value at time } t - 1\\
+\text{Avearge}:\\
+\hat{\mu} = \frac{1}{T}\sum_{t = 1}^T y_{t}\\
+$$
+
+$$
+(y_t - \hat{\mu}) \text{ the deviation of y_t from the average}\\
+(y_{t - 1} - \hat{\mu}) \text{ the deviation of y_{t - 1} from the average}\\
+(y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \text{ cross product of deviation from the means}
+$$
+
+$$
+\text{Cross product of deviations from the means}\\
+(y_{t} - )(y_i - \hat{\mu})\\
+(x_i - \hat{\mu})(y_i - \hat{\mu}) \geq 0 \text{ for persons in the upper right part of the plot: high-high}\\
+(x_i - \hat{\mu})(y_i - \hat{\mu}) \geq 0 \text{ for persons in the lower left of the plot: low-low}\\
+(x_i - \hat{\mu})(y_i - \hat{\mu}) \leq 0 \text{ for persons in the upper left of the plot: low-high}\\
+(x_i - \hat{\mu})(y_i - \hat{\mu}) \leq 0 \text{ for persons in the upper left of the plot: high-low}
+$$
+$$
+\sum_{i=1}^{n}(x_i - \hat{\mu})(y_i - \hat{\mu}) = \\
+\sum_{i \in \text{low-low}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{+} +
+\sum_{i \in \text{high-high}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{+} +\\
+\sum_{i \in \text{low-high}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{-} +
+\sum_{i \in \text{high-low}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{-}
+$$
+
+
+
+## Sample Covariance
+
+$$
+\hat{\gamma}(y_{t}, y_{t - 1}) = \frac{1}{T}\sum_{i = 1}^{T} (y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \text{ the sign of this sum depends on the arrangement of the points}
+$$
