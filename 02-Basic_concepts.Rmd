@@ -24,7 +24,7 @@ $$
 y_{t}, t = 1,\ldots,T: \text{ denotes a time series with T observations}\\
 y_1, y_2, y_3, \ldots, y_{T}
 $$
-where $T$ is the index of the last observation. In the bitcoins example $T = ?$. $y_1 = ?, y_2 = ?, \ldots, y_{?} = ?$.
+where $T$ is the index of the last observation. Look at the `bc_ts` object to determine the following:  $T = ?$. $y_1 = ?, y_2 = ?, \ldots, y_{?} = ?$.
 
 
 Empirical (sample) average (mean)
@@ -72,22 +72,24 @@ $$
 Construct the lag 1 and lag two series in the bitcoins example.
 
 ```{r prep-lags}
-bc_ts_l1 <- stats::lag(bc_ts)
+bc_ts_l1 <- stats::lag(bc_ts, k = 1)
 bc_ts_l2 <- stats::lag(bc_ts, k = 1)
-bc_ts_l2 <- stats::lag(bc_ts, k = 2)
+bc_ts_l3 <- stats::lag(bc_ts, k = 2)
 
 bc_ts_lags <- tibble(
   y = bc_ts,
   y_l1 = bc_ts_l1,
-  y_l2 = bc_ts_l2
+  y_l2 = bc_ts_l2,
+  y_l2 = bc_ts_l3
 )
+bc_ts_lags
 ```
 
 Create a scatterplot for the exchange rate time series and its first lag
 
 ```{r plot-lag-1}
 lags_scatter <- bc_ts_lags %>%
-  ggplot(data =, aes(x = y_l1, y = y)) +
+  ggplot(aes(x = y_l1, y = y)) +
   geom_point() +
   labs(
     title = "Scatterplot of y[t] and y[t-1]",
@@ -105,14 +107,14 @@ mean(bc_ts_l1)
 var(bc_ts_l1)
 ```
 
-### Empirical covariance and correlation
+### Empirical auto-covariances and auto-correlations
 
 $$
 \hat{\gamma}_{1} = \frac{1}{T}\sum_{t = 2}^{T} (y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu})\\
 \rho_{1} = \frac{\hat{\gamma}_1}{\hat{\gamma}_0}
 $$
 
-The sign of this sum in the covariance definition depends on the arrangement of the observations relative to the
+The sign of this sum in the covariance definition depends on the arrangement of the points relative to the
 series average.
 
 ```{r}
@@ -148,8 +150,19 @@ $$
 
 ## Simulation: a purely random series
 
+In the present simulation we will use the `rnorm` function to draw a series of $n = 100$ values from the standard normal distribution
+with `\mu = 0` and $\sigma = 1$.
+
 ```{r}
-rnorm(n = 1, mean = 10)
+p1 <- ggplot(data = tibble(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+  ylab("") +
+  scale_y_continuous(breaks = NULL)
+p1
+```
+
+```{r}
+rnorm(n = 1)
 ```
 
 ```{r}

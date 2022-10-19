@@ -18,6 +18,8 @@ output: html_document
 
 ```{r}
 # install.packages("xts")
+# install.packages("tidyverse")
+
 # Extended Time Series
 library(tidyverse)
 library(xts)
@@ -46,14 +48,15 @@ series plot
 - Compute the average exchange rate over the whole observation period
 
 ```{r}
-## Using the mean function
-
+## Compute the global mean of the series
 mean(bc_ts)
 ```
-- Compute the average exchange rate for June 2017
+- Compute the average exchange rate for June 2017. Use the subset syntax of `xts` to select the observations for June
+2017, then apply the `mean` function. For more information on using `xts`, have a look at this [cheat sheet](http://datacamp-community-prod.s3.amazonaws.com/72771032-0653-4d87-a798-4a83879e99c8) and at the [online documentation](https://rdrr.io/cran/xts/f/inst/doc/xts.pdf) of the package.
 
 ```{r}
 ## Subset the time series, then apply the mean function
+## Use the default date format: YYYY-MM-DD
 mean(bc_ts["2017-6"])
 ```
 
