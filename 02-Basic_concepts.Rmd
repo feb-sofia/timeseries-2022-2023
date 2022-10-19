@@ -73,15 +73,16 @@ Construct the lag 1 and lag two series in the bitcoins example.
 
 ```{r prep-lags}
 bc_ts_l1 <- stats::lag(bc_ts, k = 1)
-bc_ts_l2 <- stats::lag(bc_ts, k = 1)
-bc_ts_l3 <- stats::lag(bc_ts, k = 2)
+bc_ts_l2 <- stats::lag(bc_ts, k = 2)
+bc_ts_l3 <- stats::lag(bc_ts, k = 3)
 
 bc_ts_lags <- tibble(
   y = bc_ts,
   y_l1 = bc_ts_l1,
   y_l2 = bc_ts_l2,
-  y_l2 = bc_ts_l3
+  y_l3 = bc_ts_l3
 )
+
 bc_ts_lags
 ```
 
