@@ -7,14 +7,14 @@ output: html_document
 
 # Introduction to time series analysis
 
-## Examples of time series?
+## Some examples of time series
 
 - temperature (weather), e.g. daily average temperature
 - Rainfall series
 - Prices of stocks/debt
 - GDP series
 - Inflation series
-- Etc.
+
 
 ```{r}
 # install.packages("xts")
@@ -75,8 +75,7 @@ mean(bc_ts["2017-11/"])
 - Compute the standard deviation for the four periods
 
 What does the standard deviation measure?
-It measures how much the daily exchange rates vary around their mean: volatility, variation...
-
+It measures how much the daily exchange rates vary around their mean: volatility (variation).
 
 ```{r}
 ## Subset the time series, then apply the sd function (which computes the standard deviation)
