@@ -105,7 +105,7 @@ Compute the empirical mean and variance of the first lag series in the bitcoins 
 ```{r}
 ## Watch out for errors due to missing values
 mean(bc_ts_l1)
-var(bc_ts_l1)
+((length(bc_ts) - 1) / length(bc_ts)) * var(bc_ts_l1)
 ```
 
 ### Empirical auto-covariances and auto-correlations
@@ -149,35 +149,28 @@ $$
 \sum_{i \in \text{high-low}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{-}
 $$
 
-## Simulation: a purely random series
+## Simulation: a random series
 
 In the present simulation we will use the `rnorm` function to draw a series of $n = 100$ values from the standard normal distribution
-with `\mu = 0` and $\sigma = 1$.
+with $\mu = 0$ and $\sigma = 1$: $N(0, 1)$.
 
 ```{r}
-p1 <- ggplot(data = tibble(x = c(-3, 3)), aes(x)) +
-  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+## Draw n = 100 values from the standard normal distribution
+set.seed(123)
+x <- rnorm(n = 100, mean = 0, sd = 1)
+
+ggplot() +
+  stat_function(data = tibble(x = c(-3, 3)), aes(x = x), fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
   ylab("") +
-  scale_y_continuous(breaks = NULL)
-p1
+  scale_y_continuous(breaks = NULL) +
+  geom_rug(data = tibble(x = x), aes(x = x))
 ```
 
 ```{r}
-rnorm(n = 1)
+x <- ts(x)
+plot(x)
 ```
 
-```{r}
-n <- 100
-xrandom <- rnorm(n = n)
-ts_random <- xts(
-  xrandom,
-  order.by = seq.Date(from = as.Date("2017-06-01"), by = "day", length.out = n)
-)
-```
-
-```{r}
-plot(ts_random)
-```
 
 ```{r}
 ts_random_l1 <- stats::lag(ts_random)
@@ -196,6 +189,9 @@ ts_random_lag %>%
   geom_vline(xintercept = mean(ts_random), color = "steelblue2")
 ```
 
+```{r}
+stats::lag(x)
+```
 
 # World of mathematics
 
