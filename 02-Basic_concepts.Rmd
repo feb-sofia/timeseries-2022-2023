@@ -167,8 +167,8 @@ ggplot() +
 ```
 
 ```{r}
-x <- ts(x)
-plot(x)
+ts_random <- ts(x)
+plot(ts_random)
 ```
 
 
