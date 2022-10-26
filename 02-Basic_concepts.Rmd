@@ -163,7 +163,10 @@ ggplot() +
   stat_function(data = tibble(x = c(-3, 3)), aes(x = x), fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
   ylab("") +
   scale_y_continuous(breaks = NULL) +
-  geom_rug(data = tibble(x = x), aes(x = x))
+  geom_rug(
+    data = tibble(x = x),
+    aes(x = x)
+  )
 ```
 
 ```{r}
