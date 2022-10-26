@@ -1,5 +1,5 @@
 ---
-title: "Основни понятия"
+title: "Basic Concepts"
 author: "Boyko Amarov"
 date: "10/12/2021"
 output: html_document
@@ -240,3 +240,8 @@ y <- c(2, 3, 10)
 mean(y)
 var(y) # Up to the scaling factor
 ```
+
+# References
+
+1. Cowpertwait, P.S.P. and Metcalfe, A.V. (2009) Introductory time series with R. Dordrecht Heidelberg: Springer (Use R!). Available at: https://doi.org/10.1007/978-0-387-88698-5.
+2. Kirchgässner, G., Wolters, J. and Hassler, U. (2013) Introduction to modern time series analysis. 2. ed. Berlin Heidelberg: Springer (Springer texts in business and economics).
