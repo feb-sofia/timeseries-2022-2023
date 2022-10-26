@@ -170,19 +170,20 @@ ggplot() +
 ```
 
 ```{r}
-ts_random <- ts(x)
+ts_random <- xts(x, order.by = seq.Date(as.Date("2020-01-01"), by = "day", length.out = length(x)))
 plot(ts_random)
 ```
 
 
 ```{r}
-ts_random_l1 <- stats::lag(ts_random)
-ts_random_lag <- tibble(
+ts_random_l1 <- stats::lag(ts_random, k = 1)
+
+ts_random_lags <- tibble(
   ts_random,
   ts_random_l1
 )
 
-ts_random_lag %>%
+ts_random_lags %>%
   ggplot(aes(x = ts_random_l1, y = ts_random)) +
   geom_point() +
   ggtitle('') +
