@@ -1,0 +1,549 @@
+---
+title: "03-ARIMA-basics"
+author: "Boyko Amarov"
+date: "11/2/2021"
+output: html_document
+---
+
+# ARIMA
+
+Time series process: sequence of random variables
+
+$$
+y_1, y_2,\ldots,y_{T}
+$$
+
+## AR(1)
+
+In the following we will derive 
+
+$$
+y_{t} = \delta + \alpha y_{t - 1} + e_t
+$$
+
+Statistical properties:
+
+1. Expected value
+$$
+E(y_t) = ?
+$$
+
+2. Variance
+
+Expected squared deviation from the expected value.
+
+$$
+\gamma_0 = Var(y_t) := E\left(y_{t} - Ey_t\right)^2
+$$
+
+
+3. Autocovariances/autocorrelations of time series
+
+$$
+Cov(y_{t}, y_{t - 1}) = E\left(y_{t} - E(y_{t})\right)(y_{t - 1} - E(y_{t - 1}))
+$$
+
+$$
+\gamma_1 = Cov(y_t, y_{t - 1}) \text{ 1st order auto-covariance}\\
+\gamma_2 = Cov(y_t, y_{t - 2}) \text{ 2nd order auto-covariance}\\
+\vdots\\
+Cov(y_t, y_{t - k}) \text{ k-th order auto-covariance}\\
+\rho_1 = \rho(y_{t}, y_{t - 1}) = \frac{\gamma_1}{\gamma_0} \text{ 1st order auto-correlation}\\
+\rho_2 = \rho(y_{t}, y_{t - 2}) = \frac{\gamma_2}{\gamma_0} \text{ 2st order auto-correlation}\\
+\vdots\\
+\rho_k = \rho(y_{t}, y_{t - k}) = \frac{\gamma_k}{\gamma_0} \text{ k-th order auto-correlation}\\
+$$
+The auto-correlations do not depend on the unit of measurement of the series and
+are all (unitless) numbers between -1 and 1:
+
+
+$$
+-1 \leq \rho(y_{t}, y_{t - k}) \leq 1.
+$$
+Autocorrelation of 1 between e.g. $y_{t}$ and $y_{t - 1}$ means that $y_{t}$ is a
+linear function of $y_{t - 1}$ (with a positive slope coefficient).
+
+Autocorrelation of -1 between e.g. $y_{t}$ and $y_{t - 1}$ means that $y_{t}$ is a
+linear function of $y_{t - 1}$ (with a negative slope coefficient).
+
+
+```{r}
+## For illustration only
+
+n <- 100
+
+sim_data <- expand_grid(
+  mu = c(0, 10),
+  sigma = c(1, 3),
+  t = 1:100
+) %>%
+  mutate(
+    y = rnorm(n(), mean = mu, sd = sigma),
+    sigma_lab = paste0("sigma = ", sigma),
+    mu_lab = paste0("mu = ", mu)
+  )
+
+sim_data %>%
+  ggplot(aes(x = t, y = y, color = mu_lab)) +
+  geom_point(size = 1 / 2) +
+  geom_line() +
+  facet_wrap(~sigma_lab) +
+  labs(
+    x = "t",
+    y = expression(y[t])
+  )
+```
+```{r}
+sim_data %>%
+  group_by(mu_lab, sigma_lab) %>%
+  summarise(
+    Average = mean(y),
+    StdDev = sd(y)
+  )
+```
+
+Covariance
+
+$$
+\begin{aligned}
+  x_{t} & = u_{t}\\
+  y_{t} & = -2 x_{t} + e_{t}
+\end{aligned}
+$$
+
+
+```{r}
+n <- 100
+x <- rnorm(n = n, mean = 0, sd = 1)
+y <- 2 * x + rnorm(n = n, mean = 0, sd = 1)
+
+tibble(y, x) %>%
+  ggplot(aes(x = x, y = y)) +
+    geom_point()
+
+cov(x, y)
+cor(x, y)
+```
+
+
+## AR(1)
+
+Autoregressive, because the model equation contains lags of the time
+series $y_{t-1}, y_{t - 2}, \ldots, y_{t - k}$.
+
+$$
+y_{t} = 2 + 0.5y_{t - 1} + e_{t}, \quad e_t \sim WN(\sigma^2)
+$$
+
+$e_t$ is a purely random process (white noise process).
+
+$$
+E(e_t) = 0, \text{ for every } t\\
+Var(e_t) = \sigma^2 \text{ for every }  t\\
+Cov(e_t, e_{t - k}) = 0, \text{ for every } k \neq 0
+$$
+
+$$
+e_{t} \sim WN(\sigma^2)
+$$
+Expected value of the AR(1) process
+
+$$
+y_{t} = 2 + 0.5y_{t - 1} + e_{t}, \quad e_{t} \sim WN(\sigma^2)
+$$
+
+$$
+S_{n} = 1 + \beta + \beta^2 + \beta^3 + \ldots + \beta^n\\
+\lim_{n \to \infty } S_{n} = \frac{1}{1 - \beta} \text{ for } |\beta| < 1
+$$
+$$
+\text{ for }\alpha = 2\\
+S_{n} = 1 + 2 + 4 + 8 + \ldots + 2^n\\
+\lim_{n \to \infty } S_{n} = \infty
+$$
+
+```{r}
+1 + cumsum((2)^c(1:20))
+```
+
+
+$$
+\text{ for }\alpha = 0.5\\
+S_{n} = 0.5 + 0.5^1 + 0.5^2 + 0.5^3  + \ldots + 0.5^n\\
+\lim_{n \to \infty } S_{n} = 2
+$$
+```{r}
+1 + cumsum((0.5)^c(1:30))
+```
+
+Homework: show that the following statement holds
+$$
+-1 < \alpha < 1 \iff |\alpha| < 1\\
+\lim_{n \to \infty } S_{n} = \frac{1}{1 - \alpha}
+$$
+
+
+```{r}
+1 + cumsum((-0.5)^c(1:30))
+```
+
+
+$$
+|\alpha| < 1\\
+y_{t} = \delta + \alpha y_{t - 1} + e_{t}, \quad e_{t} \sim WN(\sigma^2); \alpha,\delta \in \mathbb{R}
+$$
+$\alpha$ and $\delta$ are constants (not random).
+
+Lag operator
+$$
+Ly_{t} = y_{t - 1}\\
+Ly_{t - 1} = y_{t - 2} \implies L(Ly_{t}) = y_{t - 2} = L^2y_{t}\\
+L^{k} y_{t}  = y_{t - k}\\
+L\delta = \delta
+$$
+We want to express the model equations using only $y_t$ and the lag operator
+
+$$
+\begin{aligned}
+y_{t} & = \delta + \alpha y_{t - 1} + e_{t}\\
+y_{t} & = \delta + \alpha Ly_{t} + e_{t}\\
+y_{t} - \alpha Ly_{t} & = \delta + e_{t}\\
+(1 - \alpha L)y_{t} & = \delta + e_{t}\\
+y_{t} & = \frac{\delta}{1 - \alpha L} + \frac{e_{t}}{1 - \alpha L}\\
+y_{t} & = \delta(1 + \alpha L + \alpha^2L^2 + \ldots) + e_{t}(1 + \alpha L + \alpha^2L^2 + \ldots)\\
+y_{t} & = \frac{\delta}{1 - \alpha} + e_{t}(1 + \alpha L + \alpha^2L^2 + \ldots)\\
+y_{t} & = \frac{\delta}{1 - \alpha} + (e_{t} + \alpha L e_{t} + \alpha^2L^2 e_{t} + \ldots)\\
+y_{t} & = \frac{\delta}{1 - \alpha} + (1e_{t} + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)\\
+y_{t} & = \frac{\delta}{1 - \alpha} + \sum_{k = 0}^{\infty} \alpha^{k} e_{t- k}\\
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+  E(y_{t}) & = E\left(\frac{\delta}{1 - \alpha} + \sum_{k = 0}^{\infty} \alpha^{k} e_{t- k}\right)\\
+  E(y_{t}) & = E\left(\frac{\delta}{1 - \alpha}\right)+ E\left(\sum_{k = 0}^{\infty} \alpha^{k} e_{t- k}\right)\\
+    E(y_{t}) & = \frac{\delta}{1 - \alpha}+ \sum_{k = 0}^{\infty} \alpha^{k} E\left(e_{t- k}\right)\\
+    E(y_{t}) & = \frac{\delta}{1 - \alpha}+ \sum_{k = 0}^{\infty} \alpha^{k} 0\\
+    E(y_{t}) & = \frac{\delta}{1 - \alpha}+ 0
+\end{aligned}
+$$
+
+
+
+
+Definition of variance:
+$$
+Var(y_{t}) = E(y_{t} - E(y_{t}))^2
+$$
+
+$$
+\begin{aligned}
+Var(y_t) & = E\left(y_{t} - E(y_{t})\right)^2\\
+Var(y_t) & = E\left(\frac{\delta}{1 - \alpha} + \sum_{k = 0}^{\infty} \alpha^{k} e_{t- k} -  \frac{\delta}{1 - \alpha}\right)^2 \\
+Var(y_t) & = E\left(\sum_{k = 0}^{\infty} \alpha^{k} e_{t- k}\right)^2\\
+Var(y_t) & = E\left(e_{t} + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots\right)^2\\
+Var(y_t) & = E\left((e_{t} + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)(e_{t} + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)\right)\\
+
+\end{aligned}
+$$
+$$
+(x + 1)(y + 2) = xy + 2x + y + 2
+$$
+third line in the sum: homework
+$$
+\begin{aligned}
+  Var(y_t) & = E\left(
+  (e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)(e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)\right)\\
+  & = E\left(
+    \begin{array}{c}
+      e_t (e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots) + \\
+      \alpha e_{t - 1}(e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots) + \\
+       \alpha^2e_{t - 2}(e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots) +\\
+       \vdots
+    \end{array}
+  \right)
+\end{aligned}\\
+
+\begin{aligned}
+  & = E\left(
+    \begin{array}{c}
+       e_t^2 + \alpha e_te_{t - 1} + \alpha^2e_te_{t - 2} + \ldots + \\
+       \alpha e_t e_{t - 1} + \alpha^2 e_{t - 1}^2 + \alpha^3e_{t - 1}e_{t - 2} + \ldots + \\
+       \alpha^2e_{t - 2}(e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots) +\\
+       \vdots
+    \end{array}
+  \right)
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+  & =
+    \begin{array}{c}
+       Ee_t^2 + \alpha Ee_te_{t - 1} + \alpha^2Ee_te_{t - 2} + \ldots + \\
+       \alpha Ee_t e_{t - 1} + \alpha^2 Ee_{t - 1}^2 + \alpha^3Ee_{t - 1}e_{t - 2} + \ldots + \\
+       E(\alpha^2e_{t - 2}(e_t + \alpha e_{t - 1} + \alpha^2e_{t - 2} + \ldots)) +\\
+       \vdots
+    \end{array}
+\end{aligned}
+$$
+$$
+\begin{aligned}
+Var(y_t) & = Ee_t^2 + \alpha^2Ee_{t - 1}^2 + \alpha^4Ee_{t - 2}^2 + \ldots\\
+Var(y_t) & = \sigma^2 + \alpha^2\sigma^2 + \alpha^4\sigma^2 + \ldots\\
+Var(y_t) & = \sigma^2(1 + \alpha^2 + \alpha^4 + \ldots)
+\end{aligned}
+$$
+$$
+1 + \alpha^2 + \alpha^4 + \ldots\\
+\text{ with } \beta = \alpha^2\\
+1 + \beta + \beta^2 + \ldots = \frac{1}{1 - \beta} = \frac{1}{1 - \alpha^2}\\
+
+$$
+Homework: show that $|\alpha| < 1 \implies |\beta| < 1$.
+
+$$
+Var(y_t) = \frac{\sigma^2}{1 - \alpha^2}
+$$
+
+What is the expected value of the products like $e_t e_{t - 1}$?
+
+Definition of covariance
+$$
+Cov(e_t, e_{t - 1}) = E(e_t)(e_{t - 1})) = E(e_te_{t- 1}) = 0
+$$
+By the definition of the variance:
+$$
+Var(e_t) = E(e_t - E(e_t))^2 = E(e_t^2) = \sigma^2
+$$
+
+## AR(3)
+
+$$
+y_{t} = \delta + \phi_{1}y_{t - 1} + \phi_2 y_{t - 2} + \phi_3 y_{t - 3} + e_t, \quad e_t \sim WN(\sigma^2)
+$$
+Roots of the lag-polynomial: 0.8, 0.2, -0.5. Roots of what?
+
+$$
+Ly_{t} = y_{t - 1}\\
+Ly_{t - 1} = y_{t - 2}\\
+L\cdot Ly_{t} = y_{t - 2}\\
+L^2y_{t} = y_{t - 2}\\
+L^3y_{t} = y_{t - 3}
+$$
+
+Using the lag operator we can express the model as:
+$$
+y_{t} = \delta + \phi_1 Ly_{t} + \phi_2 L^2y_{t} + \phi_3 L^3 y_{t} + e_t\\
+y_{t}(\underbrace{L^0 - \phi_1 L - \phi_2 L^2 - \phi_3 L^3}_{\text{lag polynomial}}) = \delta + e_t
+$$
+Characteristic equation:
+
+$$
+\lambda^{3 - 0} - \phi_1\lambda^{3 - 1} - \phi_2 \lambda^{3 - 2} - \phi_3 \lambda ^ {3 - 3} = 0\\
+\lambda^{3} - \phi_1\lambda^{2} - \phi_2 \lambda - \phi_3 = 0
+$$
+The roots of the characteristic polynomial determine whether the process is stationary
+or not. If the roots of this equation are less than 1 in absolute value then the process
+is stationary.
+
+If we know that the roots of this equation are
+
+$$
+\lambda_1^* = 0.8, \lambda_2^* = 0.2, \lambda_3^* = -0.5
+$$
+$$
+\lambda^{3} - \phi_1\lambda^{2} - \phi_2 \lambda - \phi_3 = (\lambda - \lambda_{1}^*)(\lambda - \lambda_2^*)(\lambda - \lambda_3^*)
+$$
+$$
+(\lambda - \lambda_{1}^*)(\lambda - \lambda_2^*)(\lambda - \lambda_3^*) = \\
+(\lambda - 0.8)(\lambda - 0.2)(\lambda + 0.5) = \\
+\left[\lambda^2 - \lambda + 0.16\right](\lambda + 0.5) = \\
+\lambda^3 - \lambda^2 + 0.16\lambda + 0.5\lambda^2 - 0.5\lambda + 0.08
+$$
+
+$$
+\lambda^{3} - \phi_1\lambda^{2} - \phi_2 \lambda - \phi_3\\
+\lambda^3 -0.5\lambda^2 -0.34\lambda + 0.08
+$$
+
+$$
+\phi_1 = 0.5\\
+\phi_2 = 0.34\\
+\phi_3 = -0.08
+$$
+$$
+y_{t} = \delta + \phi_{1}y_{t - 1} + \phi_2 y_{t - 2} + \phi_3 y_{t - 3} + e_t\\
+y_{t} = \delta + 0.5y_{t - 1} + 0.34y_{t - 2} - 0.08 y_{t - 3} + e_t
+$$
+Now we can calculate
+
+First order autocorrelation:
+$$
+\rho(y_{t}, y_{t - 1}) = \rho_1 = \frac{Cov(y_{t}, y_{t - 1})}{Var(y_{t})}
+$$
+The Yule-Walker equations connect the autocorrelations (and autocovariances) and
+the model coefficients.
+
+$$
+\rho_1 = \phi_1 \rho_0 + \phi_2\rho_1 + \ldots + \phi_R\rho_{R - 1}\\
+\rho_2 = \phi_1 \rho_1 + \phi_2 + \ldots + \phi_R \rho_{R - 2} \\
+\vdots\\
+\rho_{R - 1} = \phi_1 \rho_{R - 1} + \phi_2\rho_{R - 2} + \ldots + \phi_R\rho_0
+$$
+In the case of an AR(3)
+
+$$
+\rho_1 = \phi_1 + \phi_2 \rho_1 + \phi_3 \rho_2\\
+\rho_{2} = \phi_{1}\rho_{2 - 1} + \phi_2 \rho_{2 - 2} + \phi_3\rho_{3 - 2}\\
+$$
+$$
+\rho_1 = \phi_1 + \phi_2 \rho_1 + \phi_3 \rho_2\\
+\rho_{2} = \phi_{1}\rho_{1} + \phi_2 \rho_{0} + \phi_3\rho_{1}\\
+$$
+
+$$
+\rho_1 = 0.5 + 0.34 \rho_1 - 0.08 \rho_2\\
+\rho_2 = 0.5\rho_1 + 0.34 - 0.08\rho_1\\
+$$
+## Stationarity of AR(p)
+
+AR(1)
+$$
+\text{with }\delta = 0\\
+y_{t} = \phi_1 y_{t - 1} + e_t, \quad e_t \sim WN(\sigma^2)
+$$
+
+when is this process stationary? What does it mean for a process to be stationary?
+
+Stationarity:
+
+- Mean stationarity: the expected value of the process does not depend on the time index $t$
+- Variance stationarity: the variance of the process does not change over time
+- Covariance stationarity: the autocovariances of the process do not change over time
+
+
+```{r}
+x <- arima.sim(n = 100, model = list(ar = c(0.5)))
+plot(x, main = "Time series without a trend")
+```
+
+
+```{r}
+plot(x + 0.2 * (1:100), main = "Time series with a linear trend")
+```
+
+$$
+E(y_t) = 0.2t
+$$
+
+## Example of a non-stationary process
+
+Random walk process
+$$
+y_{t} = y_{t - 1} + e_t, e_t \sim WN(\sigma^2)
+$$
+
+$$
+Var(y_t)= ?
+$$
+$$
+y_{t} = y_{t - 3} + e_{t - 2} + e_{t - 1} + e_t\\
+\vdots\\
+y_{t} = \sum_{k = 1}^{t}e_t
+$$
+
+$$
+E(y_t) = E(\sum_{k = 1}^{t}e_t) = \sum_{k = 1}^{t}E(e_t) = 0
+$$
+
+$$
+Var(y_{t}) = Var(\sum_{k = 1}^{t}e_t) = \sum_{k = 1}^{t}Var(e_t) = \sum_{k = 1}^{t}\sigma^2\\
+Var(y_{t}) = \sigma^2 + \sigma^2 + \ldots + \sigma^2 = t\sigma^2
+$$
+
+The variance of a AR(1):
+
+$$
+y_{t} = \phi_1y_{t - 1} + e_t \\
+Var(y_t) = \frac{\sigma^2}{1 - \phi_1^2}
+$$
+
+For autoregressive processes of first order the stationarity condition is that
+
+$$
+|\phi_1| < 1
+$$
+
+When is an AR(2) process stationary?
+
+$$
+y_{t} = \phi_1y_{t - 1} + \phi_2 y_{t - 2} + e_t \\
+$$
+Characteristic equation of the process
+
+$$
+y_{t} = \phi_1Ly_{t} + \phi_2 L^2y_{t} + e_t \\
+(1 - \phi_1L - \phi_2 L^2)y_{t} = e_t
+$$
+Lag polynomial of the process
+$$
+L^{0} - \phi_1L^{1} - \phi_2 L^2
+$$
+Characteristic equation:
+$$
+\lambda^{2 - 0} - \phi_1 \lambda^{2 - 1} - \phi_2 \lambda^{2 - 2} = 0\\
+\lambda^{2} - \phi_1 \lambda - \phi_2 = 0\\
+$$
+
+Whether the process is stationary or not depends on the roots of this equation.
+Example:
+$$
+\phi_1 = 0.5, \phi_2 = 0.2
+$$
+
+$$
+\lambda^{2} - 0.5 \lambda - 0.2 = 0
+$$
+
+How do we solve this equation?
+
+```{r}
+## Pass it a vector of coefficients
+roots <- polyroot(c(-0.2, -0.5, 1))
+roots
+```
+
+```{r}
+abs(roots)
+```
+
+The output is in the notation of complex numbers. If the roots of the 
+characteristic equation are less than one in absolute value, then
+the process is stationary.
+
+## MA(1)
+
+$$
+y_{t} = e_t + \theta_1 e_{t - 1}, \theta_1 \text{ is a constant}, e_t \sim WN(\sigma^2)\\
+$$
+$$
+E(y_t) = \underbrace{E(e_t)}_{= 0} + \theta_1 \underbrace{E(e_{t - 1})}_{=0} = 0
+$$
+$$
+Var(y_{t}) = Var(e_{t} + \theta_1 e_{t - 1}) =  \\
+Var(y_{t}) = Var(e_{t}) + Var(\theta_1 e_{t - 1}) = \sigma^2 +  \theta_1^2 \sigma^2\\
+Var(y_{t}) = \sigma^2(1 + \theta_1^2)
+$$
+Can we write this variance as a sum of variances? Yes, because $e_t$ and $e_{t - 1}$
+are uncorrelated.
+
+$$
+Cov(e_t, e_{t - k}) = 0, k \neq 0
+$$
+
+Homework: can you uniquely determine $\theta_1$ if you know the variance of $y_t$
+and $\sigma^2$.
+
+
+
