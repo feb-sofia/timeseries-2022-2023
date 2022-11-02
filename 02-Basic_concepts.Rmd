@@ -134,19 +134,19 @@ $$
 
 $$
 \text{Cross product of deviations from the means}\\
-(y_{t} - )(y_i - \hat{\mu})\\
-(x_i - \hat{\mu})(y_i - \hat{\mu}) \geq 0 \text{ for days in the upper right part of the plot: high-high}\\
-(x_i - \hat{\mu})(y_i - \hat{\mu}) \geq 0 \text{ for days in the lower left of the plot: low-low}\\
-(x_i - \hat{\mu})(y_i - \hat{\mu}) \leq 0 \text{ for days in the upper left of the plot: low-high}\\
-(x_i - \hat{\mu})(y_i - \hat{\mu}) \leq 0 \text{ for days in the upper left of the plot: high-low}
+(y_{t} - )(y_t - \hat{\mu})\\
+(y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \geq 0 \text{ for days in the upper right part of the plot: high-high}\\
+(y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \geq 0 \text{ for days in the lower left of the plot: low-low}\\
+(y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \leq 0 \text{ for days in the upper left of the plot: low-high}\\
+(y_{t} - \hat{\mu})(y_{t - 1} - \hat{\mu}) \leq 0 \text{ for days in the upper left of the plot: high-low}
 $$
 
 $$
-\sum_{i=1}^{T}(y_i - \hat{\mu})(y_i - \hat{\mu}) = \\
-\sum_{i \in \text{low-low}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{+} +
-\sum_{i \in \text{high-high}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{+} +\\
-\sum_{i \in \text{low-high}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{-} +
-\sum_{i \in \text{high-low}}\underbrace{(x_i - \hat{\mu})(y_i - \hat{\mu})}_{-}
+\sum_{t=1}^{T}(y_t - \hat{\mu})(y_{t - 1} - \hat{\mu}) = \\
+\sum_{t \in \text{low-low}}\underbrace{(y_t - \hat{\mu})(y_{t - 1} - \hat{\mu})}_{+} +
+\sum_{t \in \text{high-high}}\underbrace{(y_t - \hat{\mu})(y_{t - 1} - \hat{\mu})}_{+} +\\
+\sum_{t \in \text{low-high}}\underbrace{(y_t - \hat{\mu})(y_{t - 1} - \hat{\mu})}_{-} +
+\sum_{t \in \text{high-low}}\underbrace{(y_t - \hat{\mu})(y_{t - 1} - \hat{\mu})}_{-}
 $$
 
 ## Simulation: a random series
