@@ -151,12 +151,35 @@ $$
 
 ## Simulation: a random series
 
+$$
+y_1 = 997.80, y_2 = 1012.02, \ldots y_T = 58778.18 \quad \text{наблюдавани стойности}\\
+y_1, y_2, \ldots, y_T \quad \text{генератори (случайни променливи)}
+$$
+
 In the present simulation we will use the `rnorm` function to draw a series of $n = 100$ values from the standard normal distribution
 with $\mu = 0$ and $\sigma = 1$: $N(0, 1)$.
 
 ```{r}
+rnorm(n = 10)
+```
+
+```{r}
+x <- rnorm(n = 10, mean = 0)
+# x
+mean(x)
+```
+
+$$
+X \sim N(\mu, \sigma^2)\\
+EX = \mu \quad \text{ математическо очакване}
+$$
+$$
+y_1, \ldots, y_T, T = 100
+$$
+
+```{r}
 ## Draw n = 100 values from the standard normal distribution
-set.seed(123)
+# set.seed(123)
 x <- rnorm(n = 100, mean = 0, sd = 1)
 
 ggplot() +
@@ -170,7 +193,15 @@ ggplot() +
 ```
 
 ```{r}
-ts_random <- xts(x, order.by = seq.Date(as.Date("2020-01-01"), by = "day", length.out = length(x)))
+seq.Date(as.Date("2020-01-01"), by = "day", length.out = length(x))
+```
+
+
+```{r}
+ts_random <- xts(
+  x,
+  order.by = seq.Date(as.Date("2020-01-01"), by = "day", length.out = length(x))
+  )
 plot(ts_random)
 ```
 
@@ -194,8 +225,24 @@ ts_random_lags %>%
 ```
 
 ```{r}
+## Covariance
+?cov
+cov(ts_random, ts_random_l1, use = "complete.obs")
+# ts_random_l1
+```
+
+```{r}
 stats::lag(x)
 ```
+
+White noise process, напълно случаен процес.
+$$
+e_1, e_2, \ldots, e_T\\
+e \sim WN(\sigma^2) \\
+E(e_t) = 0\\
+Var(e_t) = \sigma^2\\
+Cov(e_t, e_{t - k}) = 0, k \neq 0
+$$
 
 # World of mathematics
 
