@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(xts)
+library(tidyverse)
+
+dt <- read_csv("https://raw.githubusercontent.com/feb-uni-sofia/timeseries-2021-2022/main/data/gdp_bg_qrt_2000-2017.csv")
+
+gdp <- xts(dt$GDP, order.by = as.yearqtr(dt$Index, format = "%YQ%q"))
+```
