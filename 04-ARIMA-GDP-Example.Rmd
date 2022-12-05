@@ -14,3 +14,38 @@ dt <- read_csv("https://raw.githubusercontent.com/feb-uni-sofia/timeseries-2021-
 
 gdp <- xts(dt$GDP, order.by = as.yearqtr(dt$Index, format = "%YQ%q"))
 ```
+```{r}
+plot(gdp)
+```
+## Growth series 1 (quarter to previous quarter)
+
+For a series $y_1, \ldots, y_T$ the growth rate is given by
+
+$$
+g_t = \frac{y_t - y_{t - 1}{y_{t - 1}} \approx \log(y_t) - \log(y_{t - 1})
+$$
+
+```{r}
+gs_1 <- log(gdp) - log(stats::lag(gdp, k = 1))
+plot(gs_1)
+```
+
+This series still shows strong seasonality. We would like to avoid that for now, as our
+familiar arima models cannot handle seasonal effects (we will discuss this in the following weeks).
+Let us define the growth rate in a different way by comparing the GDP of a quarter with the GDP of the same quarter during the previous year.
+
+$$
+g^{(4)}_{t} = \log(y_t) - \log(y_{t - 4})
+$$
+```{r}
+gs4 <- log(gdp) - log(stats::lag(gdp, k = 4))
+plot(gs4)
+```
+```{r}
+acf(gs4, na.action = na.pass)
+pacf(gs4, na.action = na.pass)
+```
+```{r}
+fit_AR1 <- arima(gdp, order = c(1, 0, 0))
+fit_AR1
+```
