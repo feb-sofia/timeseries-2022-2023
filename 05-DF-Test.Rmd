@@ -1,0 +1,214 @@
+---
+title: "DF-test"
+author: "Boyko Amarov"
+date: "1/4/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(urca)
+## install.packages("urca")
+```
+
+
+Random walk model without a drift
+
+$$
+y_{t} = y_{t - 1} + u_{t}, u_t \sim WN(\sigma^2)
+$$
+
+$$
+\lambda - 1 = 0 \implies 
+\lambda^* = 1
+$$
+
+The solution of this characteristic equation is 1. We say that the characteristic equation has a unit root.
+
+## Random walks simulation 
+
+```{r}
+rw1 <- arima.sim(model = list(order = c(0, 1, 0)), n = 200)
+rw2 <- arima.sim(model = list(order = c(0, 1, 0)), n = 200)
+
+# rw2 <- 1.5 * rw1 + rnorm(n = 200)
+plot(rw1)
+plot(rw2)
+```
+
+```{r}
+summary(lm(rw2 ~ rw1))
+```
+Regression model
+$$
+y_{t}: \text{ random walk 2}\\
+x_{t}: \text{ random walk 1}\\
+y_{t} = \beta_0 + \beta_1 x_{t} + e_{t}, e_{t} \sim N(0, \sigma^2)
+$$
+Estimated regression equation
+
+$$
+\hat{y}_{t} = 6.15 - 1.78 x_{t}
+$$
+T-Test of the hypothesis 
+
+$$
+H_0: \beta_1 = 0\\
+H_1: \beta_1 \neq 0
+$$
+We reject the null hypothesis if the p-value of the test is less than 0.05 (convention).
+
+spurious regression
+
+
+
+$$
+\hat{y}_{t} = -1.86 + 0.19 x_{t}
+$$
+
+
+# Unit root tests
+
+AR(1) process without a constant
+
+$$
+y_{t} = \phi_1 y_{t - 1} + u_{t}, u_t \sim WN(\sigma^2)
+$$
+If the process has a unit root, it follows that $\phi_1 = 1$.
+
+We would like to test the hypothesis:
+
+$$
+H_0: \phi_1 = 1\\
+H_1: \phi < 1
+$$
+First difference
+$$
+\Delta y_{t} = y_{t} - y_{t - 1}
+$$
+
+First difference of a random walk
+
+$$
+y_{t} = y_{t - 1} + u_{t}\\
+y_{t} - y_{t - 1} = u_{t}\\
+\Delta y_{t} = u_{t}
+$$
+
+The first difference of the random walk process is stationary, because it is 
+simply equal to the pure random process $u_{t}$ and it is stationary by the properties of the pure random process. We say that the process (in this case the random walk process) is integrated of order 1.
+
+## Dickey-Fuller Unit Root Test
+
+$$
+y_{t} - y_{t - 1} = \phi_1 y_{t - 1} + u_{t} - y_{t - 1} \\
+\iff\\
+\Delta y_{t} = (\phi_1 - 1)y_{t - 1} + u_t
+$$
+$$
+\phi_1 - 1 = 0 \iff \phi_1 = 1
+$$
+
+We can use the t-statistic for testing the hypothesis that the coefficient 
+of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ (assuming that $\phi_1 = 1$) is not a t-distribution. Therefore we need to use 
+special critical values in order to perform the test.
+
+
+
+
+## Performing the DF-Test: AR(1)
+
+```{r}
+## Unit root (ur)
+summary(ur.df(rw1, type = "none", lags = 0))
+```
+-1 in the regression formula instructs lm to exclude the
+intercept from the regression equation.
+
+$$
+\underbrace{\Delta y_{t}}_{z.diff} = \underbrace{y_{t - 1}}_{z.lag.1} + e_t
+$$
+t-value is the value of the t-statistic.
+
+$$
+t = \frac{\hat{\beta}_1 - 0}{SE(\hat{\beta}_1)}
+$$
+$$
+-0.007011 / 0.008509 = -0.824
+$$
+To perform the test, compare the t-value with the critical values:
+
+      1pct  5pct 10pct
+tau1 -2.58 -1.95 -1.62
+
+and we reject the null hypothesis if the t-value value is lower than the critical values.
+
+-0.824 > -1.62 (the critical value corresponding to a 10% significance level), so we cannot reject the null hypothesis.
+
+$$
+H_0: \phi_1 - 1 = 0
+$$
+
+
+## Simulation 2 (Stationary AR(1))
+
+$$
+y_{t} = 100 + 0.7y_{t - 1} + u_{t}, u_t \sim WN(1)
+$$
+
+```{r}
+set.seed(5454) ## For reproducibility of the simulation results
+ar1 <- 100 + arima.sim(model = list(order = c(1, 0, 0), ar = c(0.7)), n = 200)
+plot(ar1)
+```
+
+```{r}
+summary(ur.df(ar1, type = "none", lags = 0))
+```
+```{r}
+summary(ur.df(ar1, type = "drift", lags = 0))
+```
+Compare the t-value (-6.253) to the critical values:
+
+      1pct  5pct 10pct
+tau2 -3.46 -2.88 -2.57
+
+-6.253 < -3.46 (1-percent critical value) => we reject the
+null hypothesis at a 1-percent significance level.
+
+
+## Simulation 3 (Stationary AR(1) with trend)
+
+$$
+y_{t} = 10 + 0.1t + 0.7 y_{t - 1} + u_{t}
+$$
+
+```{r}
+set.seed(5454) ## For reproducibility of the simulation results
+ar2 <- 10 + 0.1*(1:200) + arima.sim(model = list(order = c(1, 0, 0), ar = c(0.7)), n = 200)
+plot(ar2)
+```
+
+```{r}
+summary(ur.df(ar2, type = "drift", lags = 0))
+```
+-0.9984 > -2.57 => the test fails to reject the null hypothesis
+at any reasonable significance level.
+
+```{r}
+summary(ur.df(ar2, type = "trend", lags = 0))
+```
+      1pct  5pct 10pct
+tau3 -3.99 -3.43 -3.13
+
+-6.2976 < -3.99 => reject the null hypothesis at a 1-percent significance level.
+
+
+
+
+
+
+

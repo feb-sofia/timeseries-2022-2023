@@ -14,15 +14,17 @@ dt <- read_csv("https://raw.githubusercontent.com/feb-uni-sofia/timeseries-2021-
 
 gdp <- xts(dt$GDP, order.by = as.yearqtr(dt$Index, format = "%YQ%q"))
 ```
+
 ```{r}
 plot(gdp)
 ```
+
 ## Growth series 1 (quarter to previous quarter)
 
 For a series $y_1, \ldots, y_T$ the growth rate is given by
 
 $$
-g_t = \frac{y_t - y_{t - 1}{y_{t - 1}} \approx \log(y_t) - \log(y_{t - 1})
+g_t = \frac{y_t - y_{t - 1}}{y_{t - 1}} \approx \log(y_t) - \log(y_{t - 1})
 $$
 
 ```{r}
@@ -46,6 +48,34 @@ acf(gs4, na.action = na.pass)
 pacf(gs4, na.action = na.pass)
 ```
 ```{r}
-fit_AR1 <- arima(gdp, order = c(1, 0, 0))
+fit_AR1 <- arima(gs4, order = c(1, 0, 0))
 fit_AR1
 ```
+
+## Using the `forecast` package
+
+```{r}
+library(forecast)
+fit_AR1 <- Arima(gs4, order = c(1, 0, 0))
+```
+
+```{r}
+autoplot(forecast(fit_AR1))
+```
+
+$$
+\hat{y}_{T + 1|T}\\
+\hat{y}_{T + 2|T}
+$$
+
+
+```{r}
+predict(fit_AR1, n.ahead = 40)
+```
+$$
+y_{t} = \alpha y_{t -1} + e_t\\
+Ey_{t} = \alpha E y_{t -1}\\
+Ey_{t} =  \hat{y}_t = \hat{\alpha} \hat{y}_{t - 1}\\
+$$
+
+
