@@ -236,8 +236,16 @@ tau3 -3.99 -3.43 -3.13
 -6.2976 < -3.99 => reject the null hypothesis at a 1-percent significance level.
 
 
+## KPSS Test
 
+The KPSS test considers stationarity as the null hypothesis. Let's consider the following process:
 
+$$
+y_t = \alpha_t + \beta t + e_t, e_t \sim WN(\sigma^2)
+$$
+
+where $\alpha_t$ is a random walk process: $\alpha_t = \alpha_{t - 1} + \epsilon_t$. If $y_t$ is trend-stationary (i.e. has no unit roots), then
+the variance of $\epsilon_t$ is zero.
 
 
 

@@ -9,12 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(xts)
 library(tidyverse)
-library(fpp)
-# install.packages(c("fpp", "forecast"))
 
-data(elecequip)
 dt <- read_csv("https://raw.githubusercontent.com/feb-uni-sofia/timeseries-2021-2022/main/data/gdp_bg_qrt_2000-2017.csv")
-
 gdp <- xts(dt$GDP, order.by = as.yearqtr(dt$Index, format = "%YQ%q"))
 ```
 
@@ -75,10 +71,33 @@ $$
 ```{r}
 predict(fit_AR1, n.ahead = 40)
 ```
+
+## Prediction with ARMA processes
+
+Let $y_t$ follow a stationary ARMA process. The Wold decomposition states that every stationary ARMA process can be represented as MA($\infty$).
+
 $$
-y_{t} = \alpha y_{t -1} + e_t\\
-Ey_{t} = \alpha E y_{t -1}\\
-Ey_{t} =  \hat{y}_t = \hat{\alpha} \hat{y}_{t - 1}\\
+\begin{align}
+y_t = \mu + \sum_{j = 0}^{\infty} \psi_j e_{t - j}, \quad e_t \sim WN(\sigma^2)
+\end{align}
 $$
 
+with the restriction that $\psi_0 = 1$ and that the square sum of the coefficients is finite:
+
+$$
+\sum_{j = 0}^{\infty} \psi_j^2 \le \infty
+$$
+
+The latter condition ensures that the process has a finite variance. Let
+
+$$
+\hat{y}_t = \mu + \sum_{k = 0}^{\infty} \theta_k u_{t - k}
+$$
+
+be a forecast function. The error between the value of the process and the prediction for a $h$ periods ahead prediction is:
+$$
+y_{t + h}- \hat{y}_{t + h|t}
+$$
+
+it can be shown, that the forecast function with the smallest expected squared error is the conditional expectation of $y_{t + h}$ given the information up to time $t$.
 

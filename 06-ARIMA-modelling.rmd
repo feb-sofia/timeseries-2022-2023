@@ -1,0 +1,20 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(xts)
+library(forecast)
+
+cbe_raw <- read_tsv("https://raw.githubusercontent.com/feb-sofia/timeseries-2022-2023/main/data/cbe.csv")
+
+tidx <- zoo::as.yearmon(
+  seq.Date(
+    as.Date("1958-01-01"),
+    by = "month",
+    length.out = nrow(cbe_raw))
+)
+beer <- xts(cbe_raw$beer, tidx)["1960/1980"]
+elec <- xts(cbe_raw$elec, tidx)["1960/1980"]
+```
