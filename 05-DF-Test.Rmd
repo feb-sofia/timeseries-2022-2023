@@ -5,6 +5,8 @@ date: "1/4/2022"
 output: html_document
 ---
 
+ARIMA(p, d, q)
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -18,7 +20,9 @@ library(urca)
 Random walk model without a drift
 
 $$
-y_{t} = y_{t - 1} + u_{t}, u_t \sim WN(\sigma^2)
+y_{t} = y_{t - 1} + e_{t}, e_t \sim WN(\sigma^2)\\
+\Delta y_{t} = y_{t} - y_{t - 1} = e_{t}\\
+f' = \lim_{\epsilon \to 0}\frac{f(x) - f(x + \epsilon)}{\epsilon}
 $$
 
 $$
@@ -27,6 +31,8 @@ $$
 $$
 
 The solution of this characteristic equation is 1. We say that the characteristic equation has a unit root.
+
+ARIMA(0, 1, 0)
 
 ## Random walks simulation 
 
@@ -39,10 +45,25 @@ plot(rw1)
 plot(rw2)
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 summary(lm(rw2 ~ rw1))
 ```
+
 Regression model
+
 $$
 y_{t}: \text{ random walk 2}\\
 x_{t}: \text{ random walk 1}\\
@@ -85,18 +106,27 @@ $$
 H_0: \phi_1 = 1\\
 H_1: \phi < 1
 $$
-First difference
-$$
-\Delta y_{t} = y_{t} - y_{t - 1}
-$$
 
-First difference of a random walk
 
-$$
-y_{t} = y_{t - 1} + u_{t}\\
-y_{t} - y_{t - 1} = u_{t}\\
-\Delta y_{t} = u_{t}
-$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 The first difference of the random walk process is stationary, because it is 
 simply equal to the pure random process $u_{t}$ and it is stationary by the properties of the pure random process. We say that the process (in this case the random walk process) is integrated of order 1.
@@ -117,12 +147,11 @@ of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ 
 special critical values in order to perform the test.
 
 
-
-
 ## Performing the DF-Test: AR(1)
 
 ```{r}
 ## Unit root (ur)
+library(urca)
 summary(ur.df(rw1, type = "none", lags = 0))
 ```
 -1 in the regression formula instructs lm to exclude the

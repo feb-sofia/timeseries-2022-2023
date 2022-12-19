@@ -1,0 +1,25 @@
+---
+title: "ARIMA: GDP example"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(xts)
+library(forecast)
+
+cbe_raw <- read_tsv("https://raw.githubusercontent.com/feb-sofia/timeseries-2022-2023/main/data/cbe.csv")
+
+tidx <- zoo::as.yearmon(
+  seq.Date(
+    as.Date("1958-01-01"),
+    by = "month",
+    length.out = nrow(cbe_raw))
+)
+beer <- xts(cbe_raw$elec, tidx)
+```
+```{r}
+beer %>% autoplot()
+```
