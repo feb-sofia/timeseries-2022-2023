@@ -1,0 +1,233 @@
+## Information Criteria
+
+As the model complexity increases, e.g. AR(2) is more complex than AR(1) because it has more parameters and is therefore more flexible, the model can fit more closely to the data.
+However, this reduces the effective information used to estimate each parameter of the model (limited information spread over a larger number of coefficients). Furthermore, more complex models
+tend to fit the noise in the data rather than to capture a systematic development over time (i.e. signal). This is where information criteria come to help choose a model that balances complexity
+versus close fit to the observations.
+
+$$
+\text{AIC} = -2\log(\text{Likelihood}) + 2(p + q + k + 1)\\
+k = \begin{cases}
+1 & \delta \neq 0\\
+0 & \delta = 0
+\end{cases}
+$$
+
+In the above equation $k$ equals one or zero depending on whether the model contains a constant ($\delta$), $p$ and $q$ are the orders of the AR and MV parts, and one is added to the penalty because of the estimation of the $\sigma$ parameter (the standard deviation of the white noise process).
+
+Another commonly used information criterion is the Bayes information criterion (BIC):
+
+$$
+\text{BIC} = AIC + (\log(T) - 2)(p + q + k + 1)
+$$
+
+
+## Prediction with ARMA processes
+
+Let $y_t$ follow a stationary ARMA process. The Wold decomposition states that every stationary ARMA process can be represented as MA($\infty$).
+
+$$
+\begin{align}
+y_t = \mu + \sum_{j = 0}^{\infty} \psi_j e_{t - j}, \quad e_t \sim WN(\sigma^2)
+\end{align}
+$$
+
+with the restriction that $\psi_0 = 1$ and that the square sum of the coefficients is finite:
+
+$$
+\sum_{j = 0}^{\infty} \psi_j^2 \le \infty.
+$$
+
+The latter condition ensures that the process has a finite variance. Let
+
+$$
+\hat{y}_t(h) = \mu + \sum_{k = 0}^{\infty} \theta_k^{h} e_{t - k}
+$$
+
+be a forecast function. The error between the value of the process and the prediction for a $h$-steps forecast is the difference between the value of the process $y_{t + h}$ and the forecast:
+
+$$
+y_{t + h} - \hat{y}_{t}(h)
+$$
+
+it can be shown, that the forecast function with the smallest expected squared error is the conditional expectation of $y_{t + h}$ given the information up to time $t$.
+
+To obtain an expression for the forecast error process, consider the conditional mean of the
+white noise process. We write $E_t$ to denote the conditional mean given the information up to and including time $t$.
+
+$$
+\begin{align}
+E_t(e_{t + h}) =
+\begin{cases}
+e_{t + h} & h \leq 0 \\
+0 & h > 0
+\end{cases}
+\end{align}
+$$
+
+The Wold representation of $y_{t + h}$ is
+
+$$
+y_{t + h} = \mu + \psi_0 e_{t + h} + \psi_1 e_{t + h - 1} + \ldots + \psi_h e_t + \psi_{h + 1} e_{t - 1} + \psi_{h + 1} e_{t - 1} + \ldots
+$$
+
+The conditional mean is:
+
+$$
+E_t(y_{t + h}) = \mu + E_t(\psi_0 e_{t + h}) + E_t(\psi_1 e_{t + h - 1}) + E_t(\ldots) + E_t(\psi_h e_t) + E_t(\psi_{h + 1} e_{t - 1}) + E_t(\psi_{h + 1} e_{t - 1}) + E_t(\ldots)\\
+E_t(y_{t + h}) = \mu + \psi_h e_t + \psi_{h + 1} e_{t - 1} + \psi_{h + 1} e_{t - 1} + \ldots
+$$
+
+Therefore, the forecast error for the h-steps forecast is:
+
+$$
+\begin{align}
+f_t(h) = y_{t + h} - E_t(y_{t + h}) = \psi_0 e_{t + h} + \psi_1 e_{t + h - 1} + \psi_2 e_{t + h - 2} +  \ldots
+(\#eq:forecast-error-wold)
+\end{align}
+$$
+
+In order to compute prediction intervals, we need the variance of the forecast errors.
+This is especially easy for the 1-step ahead forecast:
+
+$$
+f_t(1) = e_{t + 1}
+$$
+
+and its variance is simply the variance of e_{t + 1} that we have set to $\sigma^2$ by assumption.
+
+$$
+Var(f_t(1)) = Var(e_{t + 1}) = \sigma^2
+$$
+
+For a two-steps ahead forecast we get:
+
+$$
+f_{t}(2) = e_{t + 2} + \psi_1 e_{t + 1}
+$$
+
+As the white noise process $e_t$ is uncorrelated (zero covariances), the variance of the forecast errors is simply the sum of the variances of the terms in the sum:
+
+$$
+Var(f_{t}(2)) = Var(e_{t + 2}) + Var(\psi_1 e_{t + 1})\\
+Var(f_{t}(2)) = \sigma^2 + \psi_1^2 \sigma^2\\
+Var(f_{t}(2)) = (1 + \psi_1^2) \sigma^2
+$$
+
+For the 3-steps ahead forecast:
+
+$$
+f_{t}(3) = e_{t + 3} + \psi_1 e_{t + 2} + \psi_2 e_{t + 1}\\
+Var(f_{t}(3)) = (1 + \psi_1^2 + \psi_2^2)\sigma^2
+$$
+
+Continuing this, we can find the variance of the h-steps ahead forecast:
+
+$$
+Var(f_t(h)) = (1 + \psi_1^2 + \psi_2^2 + \ldots \psi_{h - 1}^2)\sigma^2
+$$
+
+To construct approximate 95% prediction intervals for time $t + h$ given the history of the process up to and including $t$:
+
+$$
+\hat{y}_t(h) \pm 1.96 \sqrt{Var(f_t(h))}
+$$
+
+The $1.96$ factor is the $0.975$ quantile of the standard normal distribution. We must view these prediction intervals with caution, as these are based on the assumption that the residuals of the model are approximately normally distributed, uncorrelated and with a constant variance over time. This prediction interval does not account for the uncertainty of estimation that is inherent in the fitting of any model, including the ARIMA models that we study here.
+
+
+### Forecasts AR(1)
+
+For a (stationary: $|\alpha| < 1$) AR(1) process:
+
+$$
+y_{t} = \delta + \alpha x_{t - 1} + e_t, e_t \sim WN(\sigma^2)
+$$
+
+The optimal forecast is the conditional mean of $y_{t + h}$ given the information (history of the process) up to and including $t$. We write $E_t$ to denote this conditional expectation. For a white noise process $e_t$ the conditional expectation for $t + h$ is:
+
+$$
+E_t(e_{t + h}) = \begin{cases}
+e_{t + h} & h \leq 0 \\
+0 & h > 0
+\end{cases}
+$$
+
+the conditional mean at time $t + h$ is:
+
+$$
+\begin{align*}
+E_t(y_{t + h}) & = E_t(\delta + \alpha y_{t + h - 1} + e_{t + h}) \\
+E_t(y_{t + h}) & = \delta + E_t(\alpha y_{t + h - 1}) \\
+E_t(y_{t + h}) & = \delta + \alpha \hat{y}_{t}(h - 1)
+\end{align*}
+$$
+
+Finally, we obtain:
+
+$$
+\hat{y}_t(h) = \delta + \alpha \hat{y}_{t}(h - 1)
+$$
+
+We can solve this by substituting recursively:
+
+For $h = 1$:
+
+$$
+\hat{y}_{t}(1) = \delta + \alpha \hat{y}_t(0) = \delta + \alpha y_{t}
+$$
+
+For $h = 2$:
+
+$$
+\begin{align*}
+\hat{y}_{t}(2)  & = \delta + \alpha \hat{y}_t(1) = \delta + \alpha (\delta + \alpha \hat{y}_t(0)) \\
+& = \delta + \alpha \delta + \alpha ^2 \hat{y}_t(0) \\
+& = \delta (1 + \alpha) + \alpha^2 y_{t}
+\end{align*}
+$$
+
+Continuing with the substitution leads to:
+
+$$
+\begin{align*}
+\hat{y}_t(h)    & = \delta (1 + \alpha + \alpha^2 + \ldots + \alpha^{h - 1}) + \alpha^h y_{t} \\
+& = \frac{1 - \alpha^h}{1 - \alpha}\delta + \alpha^h x_{t}
+\end{align*}
+$$
+
+To derive the variance of the forecast error it is convenient to use the MA($\infty$) representation
+of the AR(1) process (Wold representation).
+
+$$
+y_t = \delta + \alpha y_{t - 1} + e_t\\
+(1 - \alpha L) y_{t} =  \\
+y_{t} = \frac{\delta}{1 - \alpha L} + \frac{e_t}{1 - \alpha L} \\
+y_{t} = \frac{\delta}{1 - \alpha} + (1 + \alpha L + \alpha^2 L^2 + \alpha^3 L^3 + \ldots) e_{t}\\
+y_{t} = \frac{\delta}{1 - \alpha} + e_t + \alpha e_{t - 1} + \alpha^2 e_{t - 2} + \alpha^3 e_{t - 3} + \ldots \\
+y_{t} = \mu + e_t + \alpha e_{t - 1} + \alpha^2 e_{t - 2} + \alpha^3 e_{t - 3} + \ldots
+$$
+
+We can use \@ref(eq:forecast-error-wold) to obtain the forecast error for the AR(1) process:
+
+$$
+f_t(h) = y_{t + h} - \hat{y}_t(h) = e_{t + h} + \alpha e_{t + h - 1} + \alpha^2 e_{t + h - 1} + \ldots + \alpha^{h - 1} e_{t + 1}
+$$
+
+Now it is easy to calculate the variance of the forecast error:
+
+$$
+Var(f_t(h)) = \sigma^2 + \alpha^2 \sigma^2 + \alpha ^ 4 \sigma^2 + \ldots + \alpha^{2(h - 1)}\sigma^2
+Var(f_t(h)) = (1 + \alpha^2 + \alpha^4 + \ldots \alpha^{2(h - 1)}\sigma^2\\
+Var(f_t(h)) = \frac{1 - \alpha^{2h}}{1 - \alpha^2}\sigma^2
+$$
+
+
+```{r}
+x <- arima.sim(n = 100, model = list(ar = 0.5))
+fit_AR1 <- Arima(x, order = c(1, 0, 0))
+fit_AR1
+```
+```{r}
+forecast(fit_AR1, level = 0.95, h = 1)
+```

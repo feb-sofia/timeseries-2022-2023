@@ -7,9 +7,6 @@ output: html_document
 
 ARIMA(p, d, q)
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ```{r}
 library(urca)
@@ -44,18 +41,6 @@ rw2 <- arima.sim(model = list(order = c(0, 1, 0)), n = 200)
 plot(rw1)
 plot(rw2)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ```{r}
@@ -96,7 +81,7 @@ $$
 AR(1) process without a constant
 
 $$
-y_{t} = \phi_1 y_{t - 1} + u_{t}, u_t \sim WN(\sigma^2)
+y_{t} = \phi_1 y_{t - 1} + e_{t}, e_t \sim WN(\sigma^2)
 $$
 If the process has a unit root, it follows that $\phi_1 = 1$.
 
@@ -107,28 +92,7 @@ H_0: \phi_1 = 1\\
 H_1: \phi < 1
 $$
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-The first difference of the random walk process is stationary, because it is 
+The first difference of the random walk process is stationary, because it is
 simply equal to the pure random process $u_{t}$ and it is stationary by the properties of the pure random process. We say that the process (in this case the random walk process) is integrated of order 1.
 
 ## Dickey-Fuller Unit Root Test
@@ -143,11 +107,8 @@ $$
 $$
 
 We can use the t-statistic for testing the hypothesis that the coefficient 
-of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ (assuming that $\phi_1 = 1$) is not a t-distribution. Therefore we need to use 
+of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ (assuming that $\phi_1 = 1$) is not a t-distribution. Therefore, we need to use
 special critical values in order to perform the test.
-
-
-## Performing the DF-Test: AR(1)
 
 ```{r}
 ## Unit root (ur)
@@ -190,7 +151,7 @@ $$
 
 ```{r}
 set.seed(5454) ## For reproducibility of the simulation results
-ar1 <- 100 + arima.sim(model = list(order = c(1, 0, 0), ar = c(0.7)), n = 200)
+ar1 <- 100 + arima.sim(model = list(order = c(1, 0, 0), ar = 0.7), n = 200)
 plot(ar1)
 ```
 
@@ -217,7 +178,7 @@ $$
 
 ```{r}
 set.seed(5454) ## For reproducibility of the simulation results
-ar2 <- 10 + 0.1*(1:200) + arima.sim(model = list(order = c(1, 0, 0), ar = c(0.7)), n = 200)
+ar2 <- 10 + 0.1*(1:200) + arima.sim(model = list(order = c(1, 0, 0), ar = 0.7), n = 200)
 plot(ar2)
 ```
 
@@ -235,6 +196,60 @@ tau3 -3.99 -3.43 -3.13
 
 -6.2976 < -3.99 => reject the null hypothesis at a 1-percent significance level.
 
+## ADF-Test
+
+Let us consider an AR(2) process
+
+$$
+y_{t} = \alpha_1 y_{t - 1} + \alpha_2 y_{t - 2} + e_t
+$$
+
+If this process has a unit root, then its characteristic equation
+
+$$
+\lambda ^2 - \alpha_1 \lambda - \alpha_2 = 0
+$$
+
+has a solution $\lambda^{*} = 1$, therefore, setting $\lambda = 1$ satisfies the equation, and we obtain:
+
+$$
+1^2 - \alpha_1 - \alpha_2 = 0
+$$
+
+Therefore, if the process has a unit root, its coefficients sum to one. This is a hypothesis that we can test using data. Following the approach of the DF-Test, we can try to construct a regression equation where one of the coefficients is $1 - \alpha_1 - \alpha_2$. Then we can conduct a test of the null hypothesis that this coefficient is zero.
+
+It turns out that we can reparemetrize the AR(2) model to obtain such an equation:
+
+$$
+\begin{align}
+y_{t} - y_{t - 1} & = \alpha_1 y_{t - 1} - y_{t - 1} + \alpha_2 y_{t - 2} + e_t\\
+\Delta y_{t} & = (\alpha_1 - 1)y_{t - 1} + \alpha_2 y_{t - 2} + e_t\\
+\Delta y_{t} & = (\alpha_1 - 1)y_{t - 1} + \alpha_2 y_{t - 1} - \alpha_2 y_{t - 1} \alpha_2 y_{t - 2} + e_t\\
+\Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2 y_{t - 1} \alpha_2 y_{t - 2} + e_t\\
+\Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2(y_{t - 1} - y_{t - 2}) + e_t\\
+\Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2\Delta y_{t - 1} + e_t\\
+\end{align}
+$$
+
+In the general case of an AR(p) process the equation looks more complicated but it is derived in exactly the same way as for the AR(2) process:
+
+$$
+\Delta y_t = (\rho - 1) y_{t - 1} + \theta_{1} \Delta y_{t - 1} + \theta_2 \Delta y_{t - 2} + \ldots + \theta_{p - 1} \Delta y_{t - p + 1} + e_t
+$$
+
+where $\rho$ and $\theta_i$ are defined as:
+
+$$
+\rho = \sum_{j = 1}^p \alpha_j \\
+\theta_i = - \sum_{j = i + 1}^{p} \alpha_j
+$$
+
+```{r}
+ar3 <- arima.sim(n = 200, model = list(ar = c(0.6, 0.4, -0.7)))
+
+summary(ur.df(ar3, type = "none"))
+```
+
 
 ## KPSS Test
 
@@ -244,8 +259,13 @@ $$
 y_t = \alpha_t + \beta t + e_t, e_t \sim WN(\sigma^2)
 $$
 
-where $\alpha_t$ is a random walk process: $\alpha_t = \alpha_{t - 1} + \epsilon_t$. If $y_t$ is trend-stationary (i.e. has no unit roots), then
-the variance of $\epsilon_t$ is zero.
+where $\alpha_t$ is a random walk process: $\alpha_t = \alpha_{t - 1} + \epsilon_t$. If $y_t$ is trend-stationary (i.e. has no unit roots), then the variance of $\epsilon_t$ is zero (i.e. $\alpha_t$ is a constant process).
 
+With the KPSS test we reject the null hypothesis (trend-stationarity)
+for _large_ values of the test statistic.
+
+```{r}
+summary(ur.kpss(ar2))
+```
 
 

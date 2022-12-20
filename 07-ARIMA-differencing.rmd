@@ -1,0 +1,20 @@
+---
+title: "ARIMA: forecasts and differencing"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(xts)
+library(forecast)
+library(fpp)
+
+data(elecequip)
+elecadj <- elecequip %>%  stl(s.window='periodic') %>% seasadj()
+```
+```{r}
+plot(elecadj)
+```
+
