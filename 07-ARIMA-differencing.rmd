@@ -6,8 +6,9 @@ output: html_document
 ---
 
 ```{r setup}
-install.packages(c("forecast", "fpp"))
+install.packages(c("forecast", "fpp", "urca"))
 
+library(urca)
 library(xts)
 library(forecast)
 library(fpp)
