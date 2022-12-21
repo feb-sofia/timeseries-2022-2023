@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r setup}
-library(tidyverse)
+install.packages(c("forecast", "fpp"))
+
 library(xts)
 library(forecast)
 library(fpp)
@@ -14,7 +15,5 @@ library(fpp)
 data(elecequip)
 elecadj <- elecequip %>%  stl(s.window='periodic') %>% seasadj()
 ```
-```{r}
-plot(elecadj)
-```
+
 

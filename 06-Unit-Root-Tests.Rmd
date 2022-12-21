@@ -10,7 +10,6 @@ ARIMA(p, d, q)
 
 ```{r}
 library(urca)
-## install.packages("urca")
 ```
 
 
@@ -69,8 +68,6 @@ We reject the null hypothesis if the p-value of the test is less than 0.05 (conv
 
 spurious regression
 
-
-
 $$
 \hat{y}_{t} = -1.86 + 0.19 x_{t}
 $$
@@ -81,38 +78,36 @@ $$
 AR(1) process without a constant
 
 $$
-y_{t} = \phi_1 y_{t - 1} + e_{t}, e_t \sim WN(\sigma^2)
+y_{t} = \alpha_1 y_{t - 1} + e_{t}, e_t \sim WN(\sigma^2)
 $$
-If the process has a unit root, it follows that $\phi_1 = 1$.
+If the process has a unit root, it follows that $\alpha_1 = 1$.
 
 We would like to test the hypothesis:
 
 $$
-H_0: \phi_1 = 1\\
-H_1: \phi < 1
+H_0: \alpha_1 = 1\\
+H_1: \alpha_1 < 1
 $$
 
 The first difference of the random walk process is stationary, because it is
-simply equal to the pure random process $u_{t}$ and it is stationary by the properties of the pure random process. We say that the process (in this case the random walk process) is integrated of order 1.
+simply equal to the pure random process $e_{t}$ and it is stationary by the properties of the pure random process. We say that the process (in this case the random walk process) is integrated of order 1.
 
 ## Dickey-Fuller Unit Root Test
 
 $$
-y_{t} - y_{t - 1} = \phi_1 y_{t - 1} + u_{t} - y_{t - 1} \\
+y_{t} - y_{t - 1} = \alpha_1 y_{t - 1} + e_{t} - y_{t - 1} \\
 \iff\\
-\Delta y_{t} = (\phi_1 - 1)y_{t - 1} + u_t
+\Delta y_{t} = (\alpha_1 - 1)y_{t - 1} + e_t
 $$
 $$
-\phi_1 - 1 = 0 \iff \phi_1 = 1
+\alpha_1 - 1 = 0 \iff \alpha_1 = 1
 $$
 
 We can use the t-statistic for testing the hypothesis that the coefficient 
-of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ (assuming that $\phi_1 = 1$) is not a t-distribution. Therefore, we need to use
+of $y_{t - 1}$ equals 0, but the distribution of this statistic under the $H_0$ (assuming that $\alpha_1 = 1$) is not a t-distribution. Therefore, we need to use
 special critical values in order to perform the test.
 
 ```{r}
-## Unit root (ur)
-library(urca)
 summary(ur.df(rw1, type = "none", lags = 0))
 ```
 -1 in the regression formula instructs lm to exclude the
@@ -139,27 +134,43 @@ and we reject the null hypothesis if the t-value value is lower than the critica
 -0.824 > -1.62 (the critical value corresponding to a 10% significance level), so we cannot reject the null hypothesis.
 
 $$
-H_0: \phi_1 - 1 = 0
+H_0: \alpha_1 - 1 = 0
 $$
 
-
-## Simulation 2 (Stationary AR(1))
+## Simulation 2: Stationary AR(1) with zero level
 
 $$
-y_{t} = 100 + 0.7y_{t - 1} + u_{t}, u_t \sim WN(1)
+y_{t} = 0.7y_{t - 1} + e_{t}, e_t \sim WN(1)
 $$
 
 ```{r}
-set.seed(5454) ## For reproducibility of the simulation results
-ar1 <- 100 + arima.sim(model = list(order = c(1, 0, 0), ar = 0.7), n = 200)
+set.seed(5445)
+ar1 <- arima.sim(n = 200, model = list(ar = 0.7))
 plot(ar1)
 ```
 
 ```{r}
 summary(ur.df(ar1, type = "none", lags = 0))
 ```
+
+-6.54 < -2.58 < -1.95 => reject the null hypothesis of presence of a unit root
+
+## Simulation 2: Stationary AR(1) with non-zero level
+
+$$
+y_{t} = 100 + 0.7y_{t - 1} + e_{t}, e_t \sim WN(1)
+$$
+
 ```{r}
-summary(ur.df(ar1, type = "drift", lags = 0))
+ar2 <- 100 + ar1
+plot(ar2)
+```
+
+```{r}
+summary(ur.df(ar2, type = "none", lags = 0))
+```
+```{r}
+summary(ur.df(ar2, type = "drift", lags = 0))
 ```
 Compare the t-value (-6.253) to the critical values:
 
@@ -173,23 +184,23 @@ null hypothesis at a 1-percent significance level.
 ## Simulation 3 (Stationary AR(1) with trend)
 
 $$
-y_{t} = 10 + 0.1t + 0.7 y_{t - 1} + u_{t}
+y_{t} = 10 + 0.1t + 0.7 y_{t - 1} + e_{t}
 $$
 
+
 ```{r}
-set.seed(5454) ## For reproducibility of the simulation results
-ar2 <- 10 + 0.1*(1:200) + arima.sim(model = list(order = c(1, 0, 0), ar = 0.7), n = 200)
-plot(ar2)
+ar3 <- 10 + 0.1*(1:length(ar1)) + ar1
+plot(ar3)
 ```
 
 ```{r}
-summary(ur.df(ar2, type = "drift", lags = 0))
+summary(ur.df(ar3, type = "drift", lags = 0))
 ```
 -0.9984 > -2.57 => the test fails to reject the null hypothesis
 at any reasonable significance level.
 
 ```{r}
-summary(ur.df(ar2, type = "trend", lags = 0))
+summary(ur.df(ar3, type = "trend", lags = 0))
 ```
       1pct  5pct 10pct
 tau3 -3.99 -3.43 -3.13
@@ -224,7 +235,7 @@ $$
 \begin{align}
 y_{t} - y_{t - 1} & = \alpha_1 y_{t - 1} - y_{t - 1} + \alpha_2 y_{t - 2} + e_t\\
 \Delta y_{t} & = (\alpha_1 - 1)y_{t - 1} + \alpha_2 y_{t - 2} + e_t\\
-\Delta y_{t} & = (\alpha_1 - 1)y_{t - 1} + \alpha_2 y_{t - 1} - \alpha_2 y_{t - 1} \alpha_2 y_{t - 2} + e_t\\
+\Delta y_{t} & = (\alpha_1 - 1)y_{t - 1} + \alpha_2 y_{t - 1} - \alpha_2 y_{t - 1} + \alpha_2 y_{t - 2} + e_t\\
 \Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2 y_{t - 1} \alpha_2 y_{t - 2} + e_t\\
 \Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2(y_{t - 1} - y_{t - 2}) + e_t\\
 \Delta y_{t} & = (\alpha_1 + \alpha_2 - 1)y_{t - 1} - \alpha_2\Delta y_{t - 1} + e_t\\
@@ -244,12 +255,23 @@ $$
 \theta_i = - \sum_{j = i + 1}^{p} \alpha_j
 $$
 
+## Simulation: AR(3)
+
+$$
+y_t = 0.6y_{t - 1} + 0.4y_{t - 2} - 0.7y_{t - 2} + e_t, e_t \sim WN(1)
+$$
+
 ```{r}
-ar3 <- arima.sim(n = 200, model = list(ar = c(0.6, 0.4, -0.7)))
-
-summary(ur.df(ar3, type = "none"))
+set.seed(521)
+ar4 <- arima.sim(n = 200, model = list(ar = c(0.6, 0.4, -0.7)))
+plot(ar4)
 ```
-
+```{r}
+summary(ur.df(ar4, type = "none", lags = 0))
+```
+```{r}
+summary(ur.df(ar4, type = "none", selectlags = "AIC"))
+```
 
 ## KPSS Test
 
@@ -265,7 +287,6 @@ With the KPSS test we reject the null hypothesis (trend-stationarity)
 for _large_ values of the test statistic.
 
 ```{r}
-summary(ur.kpss(ar2))
+summary(ur.kpss(rw1))
+summary(ur.kpss(ar1))
 ```
-
-
