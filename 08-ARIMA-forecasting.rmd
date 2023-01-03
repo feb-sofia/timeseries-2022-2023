@@ -1,3 +1,9 @@
+---
+title: "Forecasting ARIMA processes"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
 
 ```{r}
 library(forecast)
@@ -26,7 +32,7 @@ $$
 $$
 
 
-## Prediction with ARMA processes
+## Forecasting with ARMA processes
 
 Let $y_t$ follow a stationary ARMA process. The Wold decomposition states that every stationary ARMA process can be represented as MA($\infty$).
 
@@ -42,7 +48,28 @@ $$
 \sum_{j = 0}^{\infty} \psi_j^2 \le \infty.
 $$
 
-The latter condition ensures that the process has a finite variance. Let
+The latter condition ensures that the process has a finite variance. This representation is of limited practical
+use, because it contains an infinite number of parameters (which cannot be estimated with finite data). However,
+it helps develop the theoretical properties of all ARMA processes. For example, the variance is really easy
+to calculate, because the lags of the white noise process are uncorrelated by assumption:
+
+$$
+\begin{align}
+    Var(y_t) & = Var(\mu) + Var\left(\sum_{j = 0}^{\infty} \psi_j e_{t - j}\right) \\
+             & = 0 + \sum_{j = 0}^{\infty} Var(\psi_j e_{t - j}) \\
+             & = \sum_{j = 0}^{\infty} \psi_j^2 Var(e_{t - j}) \\
+             & = \sum_{j = 0}^{\infty} \psi_j^2 \sigma^2 \\
+             & = \sigma^2 \sum_{j = 0}^{\infty} \psi_j^2 \\
+\end{align}
+$$
+
+
+
+
+
+
+
+Let
 
 $$
 \hat{y}_t(h) = \mu + \sum_{k = 0}^{\infty} \theta_k^{h} e_{t - k}
@@ -87,7 +114,6 @@ Therefore, the forecast error for the h-steps forecast is:
 $$
 \begin{align}
 f_t(h) = y_{t + h} - E_t(y_{t + h}) = \psi_0 e_{t + h} + \psi_1 e_{t + h - 1} + \psi_2 e_{t + h - 2} +  \ldots
-(\#eq:forecast-error-wold)
 \end{align}
 $$
 
@@ -221,9 +247,11 @@ $$
 Now it is easy to calculate the variance of the forecast error:
 
 $$
-Var(f_t(h)) = \sigma^2 + \alpha^2 \sigma^2 + \alpha ^ 4 \sigma^2 + \ldots + \alpha^{2(h - 1)}\sigma^2
-Var(f_t(h)) = (1 + \alpha^2 + \alpha^4 + \ldots \alpha^{2(h - 1)}\sigma^2\\
-Var(f_t(h)) = \frac{1 - \alpha^{2h}}{1 - \alpha^2}\sigma^2
+\begin{align}
+Var(f_t(h)) & = \sigma^2 + \alpha^2 \sigma^2 + \alpha ^ 4 \sigma^2 + \ldots + \alpha^{2(h - 1)}\sigma^2
+            & = (1 + \alpha^2 + \alpha^4 + \ldots \alpha^{2(h - 1)}\sigma^2\\
+            & = \frac{1 - \alpha^{2h}}{1 - \alpha^2}\sigma^2
+\end{align}
 $$
 
 
@@ -277,6 +305,12 @@ $$
 \hat{y}_t(1) = E_t(y_{t + 1}) = \delta + \alpha y_t + \beta e_t
 $$
 
+The problem here is that $e_t$ is not observable, and therefore we cannot use the equation above directly. Instead, we need to estimate $e_t$ from the residuals:
+
+$$
+\hat{e}_t = y_{t} - \hat{y}_{t - 1}(1)
+$$
+
 For $t = 0$ the forecast is:
 
 $$
@@ -289,7 +323,7 @@ $$
 \begin{align}
 \hat{y}_{1}(1)  & = \delta + \alpha y_1 + \beta e_1 \\
                 & = \delta + \alpha y_1 + \beta (y_1 - \hat{y}_{0}(1)) \\
-                & =  \delta + \alpha y_1 + \beta (y_1 - (\delta + \alpha y_0 + \beta e_0)) \\
+                & = \delta + \alpha y_1 + \beta (y_1 - (\delta + \alpha y_0 + \beta e_0)) \\
                 & = \delta (1 - \beta) + (\alpha + \beta)y_1 - \beta \alpha y_0 + \beta^2e_0
 \end{align}
 $$
@@ -307,7 +341,19 @@ $$
 \dots\\
 $$
 
+## Forecasting ARIMA processes
 
+If the process is ARIMA with $d = 1$, then we need to de-difference the forecast:
+
+$$
+\hat{y}_t(h) = y_t + \Delta \hat{y}_{t}(1) + \Delta \hat{y}_{t}(2) + \ldots + \Delta \hat{y}_{t}(h)
+$$
+
+If the process is ARIMA with $d = 2$:
+
+$$
+\hat{y}_t(h) = y_t + \left(\Delta y_t + \Delta^2 \hat{y}_{t}(1)\right) + \left(\Delta y_t + \Delta^2 \hat{y}_{t}(1) \Delta^2 \hat{y}_t(2)\right) + \ldots + \left(\Delta y_t + \Delta^2 \hat{y}_{t}(1) \Delta^2 \hat{y}_t(2) + \ldots + \Delta^2\hat{y}_t(h)\right)
+$$
 
 
 ## Example from the lectures
@@ -315,7 +361,7 @@ $$
 ARIMA(1, 1, 1):
 
 $$
-\Delta y_t = 0.1 \Delta Y_{t−1} + e_t + 0.2 e_{t−1}
+\Delta y_t = 0.1 \Delta y_{t−1} + e_t + 0.2 e_{t−1}
 $$
 
 Compute the one-step ahead forecast of the model given the values
@@ -333,7 +379,7 @@ Compute the one-step ahead forecast of the model given the values
 | 7   | ?   |                       |                      |               |
 
 
-We want to calculate the prediction for periods 6 and 7, given the history of the series up to and including $t = 6$
+We want to calculate the prediction for periods 6 and 7, given the history of the series up to and including $t = 5$
 
 The conditional expectation of the difference series for period $T + 1 = 6$ is:
 
