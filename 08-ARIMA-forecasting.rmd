@@ -163,7 +163,7 @@ $$
 \hat{y}_t(h) \pm 1.96 \sqrt{Var(f_t(h))}
 $$
 
-The $1.96$ factor is the $0.975$ quantile of the standard normal distribution. We must view these prediction intervals with caution, as these are based on the assumption that the residuals of the model are approximately normally distributed, uncorrelated and with a constant variance over time. This prediction interval does not account for the uncertainty of estimation that is inherent in the fitting of any model, including the ARIMA models that we study here.
+The $1.96$ factor is the $0.975$ quantile of the standard normal distribution. We must view these prediction intervals with caution, as these are based on the assumption that the forecast errors are approximately normally distributed, uncorrelated and with a constant variance over time. This prediction interval does not account for the uncertainty of estimation that is inherent in the fitting of any model, including the ARIMA models that we study here.
 
 
 ### Forecasts AR(1)
@@ -305,7 +305,7 @@ $$
 \hat{y}_t(1) = E_t(y_{t + 1}) = \delta + \alpha y_t + \beta e_t
 $$
 
-The problem here is that $e_t$ is not observable, and therefore we cannot use the equation above directly. Instead, we need to estimate $e_t$ from the residuals:
+The problem here is that $e_t$ is not observable, and therefore we cannot use the equation above directly. Instead, we need to estimate $e_t$ from the forecast errors:
 
 $$
 \hat{e}_t = y_{t} - \hat{y}_{t - 1}(1)
