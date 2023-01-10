@@ -5,7 +5,7 @@ date: "12/21/2021"
 output: html_document
 ---
 
-```{r}
+```{r, message = FALSE}
 # install.packages(c("quantmod", "tidyverse", "xts", "rugarch"))
 library(quantmod)
 library(tidyverse)
@@ -13,32 +13,154 @@ library(xts)
 library(rugarch)
 ```
 
+# Example
+
+In the following example we will model the [adjusted closing prices](https://www.investopedia.com/terms/a/adjusted_closing_price.asp) of the TESLA stock. We will use the `getSymbols` function from the `quantmod` package to download the stock market data. The handle for TESLA is `TSLA`.
 
 ```{r}
 # Load data
 
 dt <- getSymbols("TSLA", from = "2010-01-01", to = "2020-12-31", auto.assign = FALSE)
 
-tesla_close <- dt$TSLA.Close
-plot(tesla_close)
-```
-```{r}
-plot(tesla_close %>% log() %>% diff())
+## Get the adjusted close price for each trading day
+##
+tesla <- dt$TSLA.Adjusted
+plot(tesla)
 ```
 
-```{r}
-tesla_lret <- tesla_close %>%
-  log() %>%
-  diff()
+The series is clearly non-stationary, so we will compute the log returns series.
 
-sd(tesla_lret, na.rm = TRUE)
-mean(tesla_lret, na.rm = TRUE)
+```{r}
+tesla_lr <- diff(log(tesla))
 ```
 
 ```{r}
-tesla_lret %>%
-  ggplot(aes(x = TSLA.Close)) +
+plot(tesla_lr)
+```
+
+The series shows no trend or seasonality, so we could try to fit a null model that only includes a constant.
+
+```{r}
+fit_AR0 <- arima(tesla_lr, order = c(0, 0, 0))
+fit_AR0
+```
+
+Let's check the model fit:
+
+```{r}
+tsdiag(fit_AR0)
+```
+
+We don't detect any deviations from the white noise assumptions in the diagnostic plots. However, we see long periods of high and low volatility in the standardized residuals plot. Let's check the ACF of the squared residuals. You can extract the residuals from the `ARIMA` object using the `residuals` function.
+
+```{r}
+fit_AR0_res <- residuals(fit_AR0)
+acf(fit_AR0_res^2, na.action = na.pass)
+```
+
+We notice high autocorrelations in the squared residuals. This indicates that although the
+residual series appears uncorrelated, its second moment is not consistent with a pure white noise process. We can also check the distribution of the residuals.
+
+
+```{r}
+tibble(x = fit_AR0_res) %>%
+  ggplot(aes(x = x)) +
   geom_density(aes(colour = 'Empirical')) +
   geom_histogram(aes(y = ..density..), alpha = 0.2) +
-  stat_function(fun = dnorm, aes(colour = 'Normal'), args = list(mean = 0.001882636, sd = 0.03533391))
+  stat_function(fun = dnorm, aes(colour = 'Normal'), args = list(mean = 0, sd = sqrt(fit_AR0$sigma2))) +
+  labs(
+    x = "Residuals",
+    y = "Density",
+    color = "Type"
+  )
+```
+
+The reddish line is an empirical density estimate. The blueish line is a normal distribution with zero mean and a standard deviation equal to the estimated $\sigma$ from the model fit. You can extract the estimated $\sigma$ from the fit object: `fit_AR0$sigma2`. Notice that the normal distribution has fewer mass at the tails than the empirical density estimate.
+
+# ARCH models
+
+The ARIMA models discussed so far assume that the residual process is uncorrelated and with a constant variance. The prediction interval that we introduced in the previous section relied on the assumption of normality of the error terms. However, it is common, especially in financial data to observe values of the time series that are more extreme than the normal distribution would accommodate. Another pattern that is commonly seen in financial data are volatility clusters: periods of high variance and periods of low variance.
+
+For example, the simple stationary AR(1) model has constant unconditional variance:
+
+$$
+y_t = \delta + \alpha y_{t - 1} + e_t, e_t \sim WN(\sigma^2)
+$$
+
+$$
+Var(y_t) = \frac{\sigma^2}{1 - \alpha^2}
+$$
+
+The conditional variance (defined analogously to the conditional mean) can be shown to equal:
+
+$$
+Var_{t - 1} = E\left(y_t - E_{t - 1}y_t^2\right) = \sigma^2
+$$
+
+This is in contrast to the conditional mean, which is not constant but depends on the previous value of the process.
+
+$$
+E_{t - 1} y_t = \delta + \alpha y_{t - 1}
+$$
+
+The idea of the ARCH models is to let the conditional variance depend on lagged values of the error term:
+
+$$
+h^2_t = Var{t - 1}e_t = E_{t - 1}(e^2_t)
+$$
+
+The ARCH(q) model uses q lags of the squared error terms to model the conditional variance
+
+$$
+h^2 = \alpha_0 + \alpha_1 e^2_t + \ldots + \alpha_q e^2_{t - q}
+$$
+
+To ensure that the conditional variance is positive, the coefficients must all be non-negative and $\alpha_q > 0$.
+
+Because the conditional volatility depends on the past values of the shocks, a large shock will tend to produce a high conditional variance that will dissipate only slowly. Small shocks will tend to produce a low conditional variance. The length of the volatility clusters is determined by $q$.
+
+Large values of $q$ can lead to estimation difficulties, however, so a more parsimonious model may be needed to deal with long volatility clusters. The GARCH(q, p) model extends the ARCH model by including lagged values of the conditional variance:
+
+$$
+h^2_t = \alpha_0 + \alpha_1 e^2_t + \ldots + \alpha_q e^2_{t - q} + \beta_1 h^2_{t - 1} + \ldots + \beta_p h^2_{t - p}
+$$
+
+It is easy to show that under the GARCH(q, p) model the squard error terms $e^2_t$ is an ARMA process.
+
+## GARCH(1, 1)
+
+The GARCH(1, 1) model is sufficient for most cases of financial data
+
+$$
+h^2_t = \alpha_0 + \alpha e^2_{t - 1} + \beta h^2_t, \quad \alpha_0, \alpha, \beta > 0
+$$
+
+# Example (continued)
+
+Let us fit a GARCH(1, 1) model to the TESLA data. There are several packages in R that can fit GARCH model, in my experience the `rugarch` package is the most versatile and robust. The `rugarch` package requires two steps to fit a model: first the model is described with the `ugarchspec` function and then the model specification object is applied to the data in the `ugarchfit` function. The `ugarchfit` function will throw an error with our data, because we have a missing value due to the differencing. To fit the model, we need to remove the missing value, for example using the `[` subsetting operator.
+
+
+```{r}
+mod <- ugarchspec(
+  variance.model = list(
+    model = "sGARCH",
+    garchOrder = c(2, 1)
+  ),
+  mean.model = list(
+    armaOrder = c(0, 0),
+    include.mean = TRUE
+  ),
+  distribution.model = "std"
+)
+
+tesla_lr_nona <- tesla_lr[-1]
+
+fit_GARCH11 <- ugarchfit(spec = mod, data = tesla_lr_nona$TSLA.Adjusted)
+fit_GARCH11
+```
+
+## Forecasting
+
+```{r}
+ugarchforecast(fit_GARCH11, n.ahead = 10)
 ```
