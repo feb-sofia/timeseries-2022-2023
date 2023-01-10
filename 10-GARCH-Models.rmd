@@ -1,0 +1,44 @@
+---
+title: "Conditional Heteroskedasticity"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
+
+```{r}
+# install.packages(c("quantmod", "tidyverse", "xts", "rugarch"))
+library(quantmod)
+library(tidyverse)
+library(xts)
+library(rugarch)
+```
+
+
+```{r}
+# Load data
+
+dt <- getSymbols("TSLA", from = "2010-01-01", to = "2020-12-31", auto.assign = FALSE)
+
+tesla_close <- dt$TSLA.Close
+plot(tesla_close)
+```
+```{r}
+plot(tesla_close %>% log() %>% diff())
+```
+
+```{r}
+tesla_lret <- tesla_close %>%
+  log() %>%
+  diff()
+
+sd(tesla_lret, na.rm = TRUE)
+mean(tesla_lret, na.rm = TRUE)
+```
+
+```{r}
+tesla_lret %>%
+  ggplot(aes(x = TSLA.Close)) +
+  geom_density(aes(colour = 'Empirical')) +
+  geom_histogram(aes(y = ..density..), alpha = 0.2) +
+  stat_function(fun = dnorm, aes(colour = 'Normal'), args = list(mean = 0.001882636, sd = 0.03533391))
+```
