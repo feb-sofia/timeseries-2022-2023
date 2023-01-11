@@ -28,6 +28,10 @@ tesla <- dt$TSLA.Adjusted
 plot(tesla)
 ```
 
+
+```{r}
+plot(tesla["/2012"])
+```
 The series is clearly non-stationary, so we will compute the log returns series.
 
 ```{r}
@@ -45,6 +49,11 @@ fit_AR0 <- arima(tesla_lr, order = c(0, 0, 0))
 fit_AR0
 ```
 
+
+```{r}
+x <- rnorm(200)
+acf(x^2)
+```
 Let's check the model fit:
 
 ```{r}
@@ -106,14 +115,21 @@ $$
 The idea of the ARCH models is to let the conditional variance depend on lagged values of the error term:
 
 $$
-h^2_t = Var{t - 1}e_t = E_{t - 1}(e^2_t)
+h^2_t = Var_{t - 1}e_t = E_{t - 1}(e^2_t)
 $$
 
 The ARCH(q) model uses q lags of the squared error terms to model the conditional variance
 
 $$
-h^2 = \alpha_0 + \alpha_1 e^2_t + \ldots + \alpha_q e^2_{t - q}
+h_{t}^2 = \alpha_0 + \alpha_1 e^2_{t - 1} + \alpha_2 e^2_{t - 2} + \ldots + \alpha_q e^2_{t - q}
 $$
+
+To understand the correlation that is induced between the conditional variances, write the above equation for $t + 1$:
+
+$$
+h_{t + 1}^2 = \alpha_0 + \alpha_1 e^2_{t} + \alpha_2 e^2_{t - 1} + \ldots + \alpha_q e^2_{t - q + 1}
+$$
+
 
 To ensure that the conditional variance is positive, the coefficients must all be non-negative and $\alpha_q > 0$.
 
@@ -122,7 +138,7 @@ Because the conditional volatility depends on the past values of the shocks, a l
 Large values of $q$ can lead to estimation difficulties, however, so a more parsimonious model may be needed to deal with long volatility clusters. The GARCH(q, p) model extends the ARCH model by including lagged values of the conditional variance:
 
 $$
-h^2_t = \alpha_0 + \alpha_1 e^2_t + \ldots + \alpha_q e^2_{t - q} + \beta_1 h^2_{t - 1} + \ldots + \beta_p h^2_{t - p}
+h^2_t = \alpha_0 + \alpha_1 e^2_{1 - 1} + \alpha_2 e^2_{1 - 2} + \ldots + \alpha_q e^2_{t - q} + \beta_1 h^2_{t - 1} + \ldots + \beta_p h^2_{t - p}
 $$
 
 It is easy to show that under the GARCH(q, p) model the squared error terms $e^2_t$ is an ARMA process.
@@ -150,8 +166,13 @@ mod <- ugarchspec(
     armaOrder = c(0, 0),
     include.mean = TRUE
   ),
-  distribution.model = "std"
+  # Normal distribution
+  distribution.model = "norm"
 )
+
+## Remove the first element of the time series because
+## it is missing due to the differencing and causes an error
+## in ugarchfit
 
 tesla_lr_nona <- tesla_lr[-1]
 
