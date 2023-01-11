@@ -63,7 +63,7 @@ tsdiag(fit_AR0)
 We don't detect any deviations from the white noise assumptions in the diagnostic plots. However, we see long periods of high and low volatility in the standardized residuals plot. Let's check the ACF of the squared residuals. You can extract the residuals from the `ARIMA` object using the `residuals` function.
 
 ```{r}
-fit_AR0_res <- residuals(fit_AR0, standardize = TRUE)
+fit_AR0_res <- residuals(fit_AR0)
 acf(fit_AR0_res^2, na.action = na.pass)
 ```
 
