@@ -34,6 +34,7 @@ plot(tesla["/2012"])
 ```
 The series is clearly non-stationary, so we will compute the log returns series.
 
+
 ```{r}
 tesla_lr <- diff(log(tesla))
 ```
@@ -49,11 +50,6 @@ fit_AR0 <- arima(tesla_lr, order = c(0, 0, 0))
 fit_AR0
 ```
 
-
-```{r}
-x <- rnorm(200)
-acf(x^2)
-```
 Let's check the model fit:
 
 ```{r}
@@ -68,7 +64,16 @@ acf(fit_AR0_res^2, na.action = na.pass)
 ```
 
 We notice high autocorrelations in the squared residuals. This indicates that although the
-residual series appears uncorrelated, its second moment is not consistent with a pure white noise process. We can also check the distribution of the residuals.
+residual series appears uncorrelated, its second moment is not consistent with a pure white noise process. Look at the simulated series below to see how the squared residuals should look like if the resemble a white noise process:
+
+```{r}
+x <- rnorm(200)
+acf(x^2)
+```
+
+
+
+We should also check the distribution of the residuals.
 
 
 ```{r}
@@ -167,7 +172,7 @@ mod <- ugarchspec(
     include.mean = TRUE
   ),
   # Normal distribution
-  distribution.model = "norm"
+  distribution.model = "std"
 )
 
 ## Remove the first element of the time series because
