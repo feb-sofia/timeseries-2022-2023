@@ -8,29 +8,6 @@ output: html_document
 ```{r}
 library(forecast)
 ```
-## Information Criteria
-
-As the model complexity increases, e.g. AR(2) is more complex than AR(1) because it has more parameters and is therefore more flexible, the model can fit more closely to the data.
-However, this reduces the effective information used to estimate each parameter of the model (limited information spread over a larger number of coefficients). Furthermore, more complex models
-tend to fit the noise in the data rather than to capture a systematic development over time (i.e. signal). This is where information criteria come to help choose a model that balances complexity
-versus close fit to the observations.
-
-$$
-\text{AIC} = -2\log(\text{Likelihood}) + 2(p + q + k + 1)\\
-k = \begin{cases}
-1 & \delta \neq 0\\
-0 & \delta = 0
-\end{cases}
-$$
-
-In the above equation $k$ equals one or zero depending on whether the model contains a constant ($\delta$), $p$ and $q$ are the orders of the AR and MV parts, and one is added to the penalty because of the estimation of the $\sigma$ parameter (the standard deviation of the white noise process).
-
-Another commonly used information criterion is the Bayes information criterion (BIC):
-
-$$
-\text{BIC} = AIC + (\log(T) - 2)(p + q + k + 1)
-$$
-
 
 ## Forecasting with ARMA processes
 
@@ -55,11 +32,11 @@ to calculate, because the lags of the white noise process are uncorrelated by as
 
 $$
 \begin{align}
-    Var(y_t) & = Var(\mu) + Var\left(\sum_{j = 0}^{\infty} \psi_j e_{t - j}\right) \\
-             & = 0 + \sum_{j = 0}^{\infty} Var(\psi_j e_{t - j}) \\
-             & = \sum_{j = 0}^{\infty} \psi_j^2 Var(e_{t - j}) \\
-             & = \sum_{j = 0}^{\infty} \psi_j^2 \sigma^2 \\
-             & = \sigma^2 \sum_{j = 0}^{\infty} \psi_j^2 \\
+Var(y_t) & = Var(\mu) + Var\left(\sum_{j = 0}^{\infty} \psi_j e_{t - j}\right) \\
+& = 0 + \sum_{j = 0}^{\infty} Var(\psi_j e_{t - j}) \\
+& = \sum_{j = 0}^{\infty} \psi_j^2 Var(e_{t - j}) \\
+& = \sum_{j = 0}^{\infty} \psi_j^2 \sigma^2 \\
+& = \sigma^2 \sum_{j = 0}^{\infty} \psi_j^2 \\
 \end{align}
 $$
 
@@ -249,8 +226,8 @@ Now it is easy to calculate the variance of the forecast error:
 $$
 \begin{align}
 Var(f_t(h)) & = \sigma^2 + \alpha^2 \sigma^2 + \alpha ^ 4 \sigma^2 + \ldots + \alpha^{2(h - 1)}\sigma^2
-            & = (1 + \alpha^2 + \alpha^4 + \ldots \alpha^{2(h - 1)}\sigma^2\\
-            & = \frac{1 - \alpha^{2h}}{1 - \alpha^2}\sigma^2
+& = (1 + \alpha^2 + \alpha^4 + \ldots \alpha^{2(h - 1)}\sigma^2\\
+& = \frac{1 - \alpha^{2h}}{1 - \alpha^2}\sigma^2
 \end{align}
 $$
 
@@ -322,9 +299,9 @@ For $t = 1$:
 $$
 \begin{align}
 \hat{y}_{1}(1)  & = \delta + \alpha y_1 + \beta e_1 \\
-                & = \delta + \alpha y_1 + \beta (y_1 - \hat{y}_{0}(1)) \\
-                & = \delta + \alpha y_1 + \beta (y_1 - (\delta + \alpha y_0 + \beta e_0)) \\
-                & = \delta (1 - \beta) + (\alpha + \beta)y_1 - \beta \alpha y_0 + \beta^2e_0
+& = \delta + \alpha y_1 + \beta (y_1 - \hat{y}_{0}(1)) \\
+& = \delta + \alpha y_1 + \beta (y_1 - (\delta + \alpha y_0 + \beta e_0)) \\
+& = \delta (1 - \beta) + (\alpha + \beta)y_1 - \beta \alpha y_0 + \beta^2e_0
 \end{align}
 $$
 We can continue substituting until we finally get an admittedly long expression for the forecast at time $t$.
@@ -356,9 +333,7 @@ $$
 $$
 
 
-## Example from the lectures
-
-ARIMA(1, 1, 1):
+## Example from the lectures: ARIMA(1, 1, 1)
 
 $$
 \Delta y_t = 0.1 \Delta y_{t−1} + e_t + 0.2 e_{t−1}
@@ -366,48 +341,254 @@ $$
 
 Compute the one-step ahead forecast of the model given the values
 
-| t   | y   | $x _t = \Delta y_{t}$ | $\hat{x}_{t - 1}(1)$ | $\hat{e}_{t}$ |
-|-----|-----|-----------------------|----------------------|---------------|
-| -1  |     |                       |                      |               |
-| 0   | -11 |                       |                      |               |
-| 1   | 2   |                       |                      |               |
-| 2   | 5   |                       |                      |               |
-| 3   | -1  |                       |                      |               |
-| 4   | 13  |                       |                      |               |
-| T=5 | 4   |                       |                      |               |
-| 6   | ?   |                       |                      |               |
-| 7   | ?   |                       |                      |               |
+| t   | y   | $x _t = \Delta y_{t}$ | $\hat{x}_{t - 1}(1)$                            | $\hat{e}_{t}$            |
+|-----|-----|-----------------------|-------------------------------------------------|--------------------------|
+| -1  |     |                       |                                                 |                          |
+| 0   | -11 | NA                    |                                                 |                          |
+| 1   | 2   | 13                    |                                                 | $0$                      |
+| 2   | 5   | 3                     | $0.1\cdot(13) + 0.2\cdot 0 = 1.3$               | $3 - 1.3 = 1.7$          |
+| 3   | -1  | -6                    | $0.1\cdot(3) + 0.2\cdot 1.7 = 0.64$             | $-6 - 0.64 = -6.64$      |
+| 4   | 13  | 14                    | $0.1\cdot(-6) + 0.2\cdot (-6.64) = -1.928$      | $14 - (-1.928) = 15.928$ |
+| T=5 | 4   | -9                    | $0.1\cdot(14) + 0.2\cdot (15.928) = 4.5856$     | $-9 - 4.5856 = -13.5856$ |
+| 6   | ?   |                       | $0.1\cdot(-9) + 0.2\cdot (-13.5856) = -3.61712$ | $0$                      |
+| 7   | ?   |                       | $0.1\cdot(-3.61712) + 0.2\cdot 0 = -0.361712$   |                          |
 
-
-We want to calculate the prediction for periods 6 and 7, given the history of the series up to and including $t = 5$
-
-The conditional expectation of the difference series for period $T + 1 = 6$ is:
-
-For the ease of notation, let us set $x_t = \Delta y_{t}$. The model then becomes:
+To calculate the forecast, start with the observation at t = 2. For the observations before that there are no available values. The optimal forecast is given by the conditional mean of the series:
 
 $$
-x_t = 0.1 x_{t - 1} + e_t + 0.2 e_{t−1}
+\hat{x}_{t}(1) = E_{t}(x_{t + 1}) = E_{t}(0.1 x_t + e_{t + 1} + 0.2 e_{t}) \\
+\hat{x}_{t}(1) = E_{t}(x_{t + 1}) = 0.1 x_t + 0.2 \hat{e}_{t}
 $$
 
-$$
-E_T(x_{T + 1}) = E_T(0.1 x_T + e_{T + 1} + 0.2 e_{T})\\
-E_T(x_{T + 1}) = 0.1 x_T + 0 + 0.2 \hat{e}_{T})
-$$
-
-where $\hat{e}_T = x_T - \hat{x}_{T - 1}(1)$ is the residual from the last observed period $T = 5$. To obtain that residual, write the one period ahead forecast for period $t = 0$.
+Let's calculate the one step ahead forecast for $x_2$:
 
 $$
-\hat{x}_{0}(1) = 0.1 x_{0} + 0.2 e_{0}
+\hat{x}_{1}(1) = E_{1}(x_{2}) = 0.1 x_t + 0.2 \hat{e}_{1}
 $$
 
-Next, write the next one period ahead forecast:
+For the next steps we will estimate $e_{t}$ from the forecast error but for the initial values (where we cannot compute the residual) we will set $e_{1} = 0$.
 
 $$
-\hat{x}_{1}(1) = 0.1 x_1 + 0.2 e_{1} = 0.1 x_1 + 0.2 (x_1 - \hat{x}_{0}(1))\\
+\hat{x}_{1}(1) = 0.1 \cdot 13 + 0.2 \cdot 0 = 1.3
 $$
 
-Finally, we need to de-difference the forecast:
+The forecast for $x_3$ is:
 
 $$
-\hat{y}_{t}(1) = y_{t} + 0.1 \Delta y_{t - 1} + 0.2
+\hat{x}_{2}(1) = 0.1 x_{2} + 0.2 \hat{e}_{2}\\
+\hat{e}_{2} = x_2 - \hat{x}_1(1) = 3 - 1.3 = 1.7 \\
+\hat{x}_{2}(1) = 0.1 \cdot 3 + 0.2 1.7 = 0.64 \\
 $$
+
+We repeat this calculation until we get to the final step. Note that when forecasting $x_7$ the
+forecast equation is:
+
+$$
+\hat{x}_{6}(1) = 0.1 \hat{x}_{6} = −0.36
+$$
+
+To get the prediction for $y_5$ and $y_6$, use apply the formula for reversing the differencing ($d = 1$):
+
+$$
+\hat{y}_t(h) = y_t + \Delta \hat{y}_{t}(1) + \Delta \hat{y}_{t}(2) + \ldots + \Delta \hat{y}_{t}(h)
+$$
+
+For the one step ahead prediction we obtain $(h = 1)$:
+
+$$
+\hat{y}_t(1) = y_t + \hat{x}_t(1) \\
+\hat{y}_5(1) = y_{5} + \hat{x}_5(1) = 4 + (−3.61712) = 0.38288
+$$
+
+For the two steps prediction we obtain $(h = 2)$
+
+$$
+\hat{y}_t(1) = y_t + \hat{x}_t(1) + \hat{x}_t(2) \\
+\hat{y}_5(1) = y_{5} + \hat{x}_5(1) + \hat{x}_5(2) = 4 + (−3.61712) + (−0.361712) = 0.021168
+$$
+
+We can verify the prediction using `arima` and `predict`. First, we enter the
+values by hand and compute the first difference.
+
+```{r}
+y <- c(-11, 2, 5, -1, 13, 4)
+x <- diff(y)
+x
+```
+
+ Note that the default estimation method in `arima` is slighly different from what is shown in the table above. To reproduce the results, set the estimation method in `arima` to conditional sum of squares (CSS).
+
+```{r}
+fit_ARIMA_1_0_1 <- arima(
+  x,
+  ## ARIMA(1, 0, 1)
+  order = c(1, 0, 1),
+  ## Fix the coefficients ar(1) = 0.1, ma(1) = 0.2 , delta = 0
+  ## so that they do not get estimated from the data (you'll get different values)
+  ## and we want to use exactly the coefficients from the model for calculating the
+  ## forecasts
+  fixed = c(0.1, 0.2, 0),
+  method = "CSS"
+)
+fit_ARIMA_1_0_1
+```
+```{r}
+residuals(fit_ARIMA_1_0_1)
+```
+```{r}
+predict(fit_ARIMA_1_0_1, n.ahead = 2)
+```
+
+You can also do it directly by setting the integration order of the arima process to 1. This time you pass the values of `y` to `arima` and not the differenced values in `x`.
+
+```{r}
+fit_ARIMA_1_1_1 <- arima(
+  y,
+  order = c(1, 1, 1),
+  fixed = c(0.1, 0.2),
+  method = "CSS"
+)
+fit_ARIMA_1_1_1
+predict(fit_ARIMA_1_1_1, n.ahead = 2)
+```
+
+## Example with ARIMA(2, 1, 1)
+
+$$
+\Delta y_t = 0.1 \Delta y_{t−1} + 0.3 \Delta y_{t - 2} + e_t + 0.2 e_{t−1}
+$$
+
+Again, set $x_t = \Delta y_{t}$ to get a regular ARMA(2, 1) model.
+
+$$
+x_t = 0.1 x_{t - 1} + 0.3 x_{t - 2} + e_t + 0.2 e_{t−1}
+$$
+
+The optimal forecast is (again) the conditional mean of the process:
+
+$$
+\hat{x}_{t}(1) = 0.1 x_t + 0.3 x_{t - 1} + 0.2 \hat{e}_{t}
+$$
+
+Your first prediction will be for $t = 3$, because you have no values for $x$ before $t = 1$.
+
+$$
+\hat{x}_2(1) = 0.1x_{2} + 0.3 x_{1} + \hat{e}_{2} = 0.1 \cdot 3 + 0.3 \cdot 13 + 0 = 4.2
+$$
+
+As you cannot estimate $e_2$ from the residuals, set it to zero. With this estimate, the forecast error is
+
+$$
+\hat{e}_{3} = x_3 - \hat{x}_2(1) = -6 - 4.2 = -10.2
+$$
+
+You will use this error in the next step to calculate the forecast for $x_4$:
+
+$$
+\hat{x}_3(1) = 0.1 x_{3} + 0.3 x_{2} + \hat{e}_3 = 0.1 \cdot (-6) + 0.3 \cdot 3 + 0.2 \cdot (-10.2) = -1.74
+$$
+
+You continue this way until you reach the $t = 7$. Then you apply the de-differencing formula as in the previous example.
+
+
+| t   | y   | $x _t = \Delta y_{t}$ | $\hat{x}_{t - 1}(1)$ | $\hat{e}_{t}$          |
+|-----|-----|-----------------------|----------------------|------------------------|
+| -1  |     |                       |                      |                        |
+| 0   | -11 | NA                    |                      |                        |
+| 1   | 2   | 13                    |                      | $0$                    |
+| 2   | 5   | 3                     |                      | $0$                    |
+| 3   | -1  | -6                    | 4.2                  | $-6 - 4.2 = -10.2$     |
+| 4   | 13  | 14                    | -1.74                | $14 - (-1.74) = 15.74$ |
+| T=5 | 4   | -9                    |                      | $-11.748$              |
+| 6   | ?   |                       |                      | $0$                    |
+| 7   | ?   |                       |                      | $0$                    |
+
+```{r}
+fit_ARIMA_2_0_1 <- arima(
+  x,
+  order = c(2, 0, 1),
+  fixed = c(0.1, 0.3, 0.2, 0),
+  method = "CSS"
+)
+fit_ARIMA_2_0_1
+```
+```{r}
+residuals(fit_ARIMA_2_0_1)
+```
+```{r}
+predict(fit_ARIMA_2_0_1, n.ahead = 2)
+```
+
+## Example with ARIMA(1, 1, 2)
+
+$$
+\Delta y_t = 0.1 \Delta y_{t−1} + e_t + 0.2 e_{t−1} + 0.3 e_{t -2}
+$$
+
+Substituting $\Delta y_{t} = x_t$:
+
+$$
+x_t = 0.1 x_{t−1} + e_t + 0.2 e_{t−1} + 0.3 e_{t -2}
+$$
+
+The optimal forecast is given by:
+
+$$
+\hat{x}_{t}(1) = 0.1 x_{t} + 0.2 \hat{e}_{t} + 0.3 \hat{e}_{t - 1}
+$$
+
+The first prediction for $x_2$ is given by:
+
+$$
+\hat{x}_1(1) = 0.1 x_{1} + 0.2 \hat{e}_{1} + 0.3 \hat{e}_{0}
+$$
+
+Initializing the forecast error series with zeroes we get:
+
+$$
+\hat{x}_1(1) = 0.1 \cdot 13 + 0.2 \cdot 0 + 0.3 \cdot 0 = 1.3 \\
+\hat{e}_2 = 3 - 1.3 = 1.7
+$$
+
+The next forecast error is:
+
+$$
+\hat{x}_2(1) = 0.1 x_{2} + 0.2 \hat{e}_2 + 0.3 \hat{e}_1\\
+\hat{x}_2(1) = 0.1 \cdot 3 + 0.2 \cdot 1.7 + 0.3 \cdot 0 = 0.64\\
+\hat{e}_3 = -6 - 0.64 = -6.64
+$$
+
+and then:
+
+$$
+\hat{x}_3(1) = 0.1 x_{3} + 0.2 \hat{e}_3 + 0.3 \hat{e}_2\\
+\hat{x}_3(1) = 0.1 \cdot (-6) + 0.2 \cdot (-6.64) + 0.3 \cdot 1.7 = -1.418\\
+\hat{e}_4 = 14 - (-1.418) = 15.418
+$$
+
+
+```{r}
+fit_ARIMA_1_0_2 <- arima(
+  x,
+  order = c(1, 0, 2),
+  fixed = c(0.1, 0.2, 0.3, 0),
+  method = "CSS"
+)
+fit_ARIMA_1_0_2
+```
+```{r}
+residuals(fit_ARIMA_1_0_2)
+```
+
+
+| t   | y   | $x _t = \Delta y_{t}$ | $\hat{x}_{t - 1}(1)$ | $\hat{e}_{t}$  |
+|-----|-----|-----------------------|----------------------|----------------|
+| -1  |     |                       |                      |                |
+| 0   | -11 | NA                    |                      | $0$            |
+| 1   | 2   | 13                    |                      | $0$            |
+| 2   | 5   | 3                     | 1.3                  | $1.7$          |
+| 3   | -1  | -6                    | 0.64                 | $-6.64$        |
+| 4   | 13  | 14                    |                      | $15.418$       |
+| T=5 | 4   | -9                    |                      | $-11.4916$     |
+| 6   | ?   |                       |                      |                |
+| 7   | ?   |                       |                      |                |
