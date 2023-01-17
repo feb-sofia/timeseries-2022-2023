@@ -1,8 +1,10 @@
 # Time series analysis 2022/2023
 
-## Schedule
+## Compiled notes
 
-TBA
+Forecasting: https://feb-sofia.github.io/timeseries-2022-2023/08-ARIMA-forecasting.html
+
+GARCH models: https://feb-sofia.github.io/timeseries-2022-2023/10-GARCH-Models.html
 
 ## Class notes
 
