@@ -403,8 +403,8 @@ $$
 For the two steps prediction we obtain $(h = 2)$
 
 $$
-\hat{y}_t(1) = y_t + \hat{x}_t(1) + \hat{x}_t(2) \\
-\hat{y}_5(1) = y_{5} + \hat{x}_5(1) + \hat{x}_5(2) = 4 + (−3.61712) + (−0.361712) = 0.021168
+\hat{y}_t(2) = y_t + \hat{x}_t(1) + \hat{x}_t(2) \\
+\hat{y}_5(2) = y_{5} + \hat{x}_5(1) + \hat{x}_5(2) = 4 + (−3.61712) + (−0.361712) = 0.021168
 $$
 
 We can verify the prediction using `arima` and `predict`. First, we enter the

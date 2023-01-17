@@ -573,14 +573,14 @@ fit_AR1</code></pre>
 ## 
 ## Coefficients:
 ##          ar1     mean
-##       0.4730  -0.3187
-## s.e.  0.0881   0.2038
+##       0.4058  -0.0928
+## s.e.  0.0917   0.1558
 ## 
-## sigma^2 = 1.199:  log likelihood = -150.07
-## AIC=306.14   AICc=306.39   BIC=313.96</code></pre>
+## sigma^2 = 0.8865:  log likelihood = -134.95
+## AIC=275.9   AICc=276.15   BIC=283.72</code></pre>
 <pre class="r"><code>forecast(fit_AR1, level = 0.95, h = 1)</code></pre>
 <pre><code>##     Point Forecast     Lo 95    Hi 95
-## 101      -0.635313 -2.781178 1.510552</code></pre>
+## 101     -0.1167176 -1.962124 1.728689</code></pre>
 </div>
 </div>
 <div id="forecasting-ma1" class="section level2">
@@ -809,8 +809,8 @@ reversing the differencing (<span class="math inline">\(d =
 <p>For the two steps prediction we obtain <span class="math inline">\((h
 = 2)\)</span></p>
 <p><span class="math display">\[
-\hat{y}_t(1) = y_t + \hat{x}_t(1) + \hat{x}_t(2) \\
-\hat{y}_5(1) = y_{5} + \hat{x}_5(1) + \hat{x}_5(2) = 4 + (−3.61712) +
+\hat{y}_t(2) = y_t + \hat{x}_t(1) + \hat{x}_t(2) \\
+\hat{y}_5(2) = y_{5} + \hat{x}_5(1) + \hat{x}_5(2) = 4 + (−3.61712) +
 (−0.361712) = 0.021168
 \]</span></p>
 <p>We can verify the prediction using <code>arima</code> and
