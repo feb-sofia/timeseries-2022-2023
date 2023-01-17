@@ -1,0 +1,11 @@
+---
+title: "Seasonal data"
+author: "Boyko Amarov"
+date: "12/21/2021"
+output: html_document
+---
+
+```{r}
+library(fpp)
+data(h02)
+```
