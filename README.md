@@ -4,8 +4,8 @@
 
 Please open the homework registration link: https://classroom.github.com/a/FYFopzPe
 
-- You need a working (GitHub.com)[github.com] account as you will be asked to
-  log in to GitHub.
+- You need a working [GitHub.com](https://github.com) account as you will be asked to
+  log in to GitHub (you can use the one that you created for the econometrics homework). Make sure that you use an active email your GitHub account, because you'll receive notifications at this address.
 - When you open the registration link for the first time, please select your student id from the list. If you can't find your student id there, please contact me: boyko.amarov@gamil.com.
 - The homework is a group assignment. Each group has a limit of 5 members.
   The first member of your group should create a team when he or she visits the
