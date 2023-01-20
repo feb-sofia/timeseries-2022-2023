@@ -19,27 +19,3 @@ beer <- xts(cbe_raw$beer, tidx)["1960/1980"]
 elec <- xts(cbe_raw$elec, tidx)["1960/1980"]
 ```
 
-## Information Criteria
-
-As the model complexity increases, e.g. AR(2) is more complex than AR(1) because it has more parameters and is therefore more flexible, the model can fit more closely to the data.
-However, this reduces the effective information used to estimate each parameter of the model (limited information spread over a larger number of coefficients). Furthermore, more complex models
-tend to fit the noise in the data rather than to capture a systematic development over time (i.e. signal). This is where information criteria come to help choose a model that balances complexity
-versus close fit to the observations.
-
-$$
-\text{AIC} = -2\log(\text{Likelihood}) + 2(p + q + k + 1)\\
-k = \begin{cases}
-1 & \delta \neq 0\\
-0 & \delta = 0
-\end{cases}
-$$
-
-In the above equation $k$ equals one or zero depending on whether the model contains a constant ($\delta$), $p$ and $q$ are the orders of the AR and MV parts, and one is added to the penalty because of the estimation of the $\sigma$ parameter (the standard deviation of the white noise process).
-
-Another commonly used information criterion is the Bayes information criterion (BIC):
-
-$$
-\text{BIC} = AIC + (\log(T) - 2)(p + q + k + 1)
-$$
-
-When comparing candidate models, better models have a lower values of the information criteria. Do not use the IC to select the order of integration, as differencing changes the data and the IC values are not comparable!
