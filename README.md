@@ -25,7 +25,7 @@ Please open the homework registration link: https://classroom.github.com/a/FYFop
   your solution, and paste it into the GitHub editor, replacing the original content.
   Click on the green "Commit" button at the bottom of the page. Verify that your
   solution is correctly uploaded by opening file in GitHub one more time.
-- Take care to really replace the assignment files with your solution. Please do not upload additional `Rmd` files to your repository. At the end your repository must contain only *one* Rmd file. 
+- Take care to really replace the assignment file with your solution. Please do not upload additional `Rmd` files to your repository. At the end your repository must contain only *one* Rmd file. 
 - Verify that your code works by clicking on the "Knit" button in R-Studio. It
   should compile a web-page with your solution. If the web-page does not appear,
   this means that there are errors in your code that need to be fixed.
